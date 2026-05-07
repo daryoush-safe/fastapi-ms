@@ -1,0 +1,17 @@
+[project]
+name = "fastapi-ms"
+version = "0.1.0"
+description = "fastapi microservice"
+readme = "README.md"
+requires-python = ">=3.14"
+
+[tool.uv.workspace]
+members = [
+    "libs/shared-core",
+    "libs/shared-infra",
+    "UserService",
+    "SubscriptionService",
+]
+
+[dependency-groups]
+dev = []
