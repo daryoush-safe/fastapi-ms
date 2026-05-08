@@ -1,10 +1,11 @@
 import uuid
+from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, String, func
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 from src.infrastructure.persistence.postgres.models.base_orm import Base
-from datetime import datetime
+
 
 class UserORM(Base):
     __tablename__ = "users"
