@@ -1,4 +1,3 @@
-# UserService/src/application/dto.py
 from dataclasses import dataclass
 
 

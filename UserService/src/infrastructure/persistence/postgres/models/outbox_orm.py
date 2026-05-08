@@ -5,7 +5,7 @@ from datetime import datetime
 from sqlalchemy import DateTime, Enum, Index, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
-from src.infrastructure.persistence.postgres.models.user_orm import Base
+from src.infrastructure.persistence.postgres.models.base_orm import Base
 
 
 class OutboxStatus(str, enum.Enum):

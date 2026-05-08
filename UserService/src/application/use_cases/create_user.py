@@ -1,4 +1,3 @@
-# UserService/src/application/use_cases/create_user.py
 from src.application.dto import CreateUserDTO
 from src.application.services import PasswordHasher
 from src.domain.exceptions import UserAlreadyExistsError
