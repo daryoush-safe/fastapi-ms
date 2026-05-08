@@ -1,42 +1,48 @@
-FROM python:3.14-slim AS base
+# ── Stage 1: builder ──────────────────────────────────────────────────────────
+FROM python:3.14-slim AS builder
+
+ENV PIP_INDEX_URL=https://package-mirror.liara.ir/repository/pypi/simple \
+    PIP_NO_CACHE_DIR=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+# Install uv
+RUN pip install uv
+
+# Copy entire monorepo
+COPY . .
+
+# Install workspace dependencies
+WORKDIR /app/SubscriptionService
+RUN uv sync --no-dev
+
+# ── Stage 2: runtime ──────────────────────────────────────────────────────────
+FROM python:3.14-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app \
-    PIP_INDEX_URL=https://package-mirror.liara.ir/repository/pypi/simple \
-    PIP_NO_CACHE_DIR=1
+    PATH="/app/.venv/bin:$PATH"
 
 WORKDIR /app
 
-# ─────────────────────────────────────────────────────────────
-# deps
-# ─────────────────────────────────────────────────────────────
-FROM base AS deps
+# # Copy virtualenv from builder
+COPY --from=builder /app/.venv /app/.venv
 
-RUN pip install --upgrade pip
+# Copy service files
+COPY SubscriptionService/src ./src
+COPY SubscriptionService/migrations ./migrations
+COPY SubscriptionService/alembic.ini ./alembic.ini
 
-COPY pyproject.toml .
-COPY src ./src
+COPY scripts/wait_for_services.sh /wait_for_services.sh
 
-RUN pip install .
+RUN chmod +x /wait_for_services.sh && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends netcat-openbsd && \
+    rm -rf /var/lib/apt/lists/*
 
-# ─────────────────────────────────────────────────────────────
-# dev
-# ─────────────────────────────────────────────────────────────
-FROM deps AS dev
+EXPOSE 8001
 
-RUN pip install ".[dev]"
-
-# ─────────────────────────────────────────────────────────────
-# prod
-# ─────────────────────────────────────────────────────────────
-FROM deps AS prod
-
-COPY migrations ./migrations
-COPY alembic.ini .
-
-RUN addgroup --system app && adduser --system --ingroup app app
-
-USER app
-
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["/bin/sh", "-c", "/wait_for_services.sh && alembic upgrade head && uvicorn src.main:app --host 0.0.0.0 --port 8001"]

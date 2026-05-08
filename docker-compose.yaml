@@ -1,95 +1,210 @@
 services:
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_MULTIPLE_DATABASES: userservice,subscriptionservice
-    ports:
-      - "5432:5432"
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD}
+      POSTGRES_DB: fastapi_ms
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./PostgresDB/init:/docker-entrypoint-initdb.d # Runs your SQL scripts
-    command: ["postgres", "-c", "wal_level=logical"] # Required for Debezium
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      retries: 5
-
-  # Simple Kafka replacement
-  redpanda:
-    image: docker.redpanda.com/redpandadata/redpanda:latest
-    command:
-      - redpanda start
-      - --overprovisioned
-      - --smp 1
-      - --memory 1G
-      - --reserve-memory 0M
-      - --node-id 0
-      - --check=false
-      - --kafka-addr PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
-      - --advertise-kafka-addr PLAINTEXT://redpanda:29092,OUTSIDE://localhost:9092
+      - ./PostgresDB/init:/docker-entrypoint-initdb.d:ro
+      - ./PostgresDB/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./PostgresDB/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+    command: >
+      postgres
+        -c config_file=/etc/postgresql/postgresql.conf
+        -c hba_file=/etc/postgresql/pg_hba.conf
     ports:
-      - "9092:9092"
+      - "5432:5432"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d fastapi_ms"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
-  kafka-connect:
-    image: quay.io/debezium/connect:latest
+  # ── Zookeeper ────────────────────────────────────────────────────────────────
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.6.0
+    container_name: zookeeper
+    restart: unless-stopped
     environment:
-      BOOTSTRAP_SERVERS: redpanda:29092
-      GROUP_ID: 1
-      CONFIG_STORAGE_TOPIC: my_connect_configs
-      OFFSET_STORAGE_TOPIC: my_connect_offsets
-      STATUS_STORAGE_TOPIC: my_connect_statuses
-      # Mapping env vars for the JSON configs
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USER: postgres
-      DB_PASSWORD: postgres
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      KAFKA_OPTS: "-Dzookeeper.4lw.commands.whitelist=ruok"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_log:/var/lib/zookeeper/log
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/2181 && echo -e 'ruok' >&3 && grep imok <&3"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── Kafka ────────────────────────────────────────────────────────────────────
+  kafka:
+    image: confluentinc/cp-kafka:7.6.0
+    container_name: kafka
+    restart: unless-stopped
     depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      # PLAINTEXT  → used inside docker network (service-to-service)
+      # PLAINTEXT_HOST → used from your laptop via localhost
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LOG_RETENTION_HOURS: 168
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    ports:
+      - "9092:9092"       # external (host machine)
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 20s
+
+  # ── Kafka Connect (Debezium) ──────────────────────────────────────────────────
+  kafka-connect:
+    image: debezium/connect:2.7
+    container_name: kafka-connect
+    restart: unless-stopped
+    depends_on:
+      kafka:
+        condition: service_healthy
       postgres:
         condition: service_healthy
-      redpanda:
-        condition: service_started
-    volumes:
-      - ./debezium/connectors:/debezium/connectors
-      - ./debezium/bootstrap.sh:/debezium/bootstrap.sh
-    entrypoint: ["/debezium/bootstrap.sh"]
+    environment:
+      BOOTSTRAP_SERVERS: kafka:29092
+      GROUP_ID: debezium-connect-cluster
+      CONFIG_STORAGE_TOPIC: _debezium_configs
+      OFFSET_STORAGE_TOPIC: _debezium_offsets
+      STATUS_STORAGE_TOPIC: _debezium_statuses
+      CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      STATUS_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+    ports:
+      - "8083:8083"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8083/connectors"]
+      interval: 15s
+      timeout: 10s
+      retries: 15
+      start_period: 30s
 
+  # ── Debezium bootstrap (registers connectors once, then exits) ────────────────
+  debezium-bootstrap:
+    image: debezium/connect:2.7        # has curl + python3 built in
+    container_name: debezium-bootstrap
+    restart: "no"
+    depends_on:
+      kafka-connect:
+        condition: service_healthy
+    volumes:
+      - ./debezium:/debezium:ro
+    entrypoint: ["/bin/bash", "/debezium/bootstrap.sh"]
+    environment:
+      KAFKA_CONNECT_URL: http://kafka-connect:8083
+    networks:
+      - backend
+
+  # ── User Service ─────────────────────────────────────────────────────────────
   user-service:
     build:
-      context: ./UserService
-      dockerfile: Dockerfile
-      target: dev
+      context: .                        # root — so Dockerfile can reach libs/
+      dockerfile: UserService/Dockerfile
+    container_name: user-service
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://user_service_role:${USER_SERVICE_DB_PASSWORD}@postgres:5432/fastapi_ms
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      DB_HOST: postgres
+      DB_PORT: 5432
+      KAFKA_HOST: kafka
+      KAFKA_PORT: 29092
+      APP_NAME: UserService
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8000
+      DEBUG: "false"
+      DB_ECHO: "false"
+      DB_POOL_SIZE: 5
+      DB_MAX_OVERFLOW: 10
     ports:
       - "8000:8000"
-    environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/userservice
-      KAFKA_BOOTSTRAP_SERVERS: redpanda:29092
-    volumes:
-      - ./UserService:/app
-      - ./libs:/libs # Mount shared libs for live reload
-      - ./contracts:/contracts
-    depends_on:
-      postgres:
-        condition: service_healthy
+    networks:
+      - backend
 
+  # ── Subscription Service ──────────────────────────────────────────────────────
   subscription-service:
     build:
-      context: ./SubscriptionService
-      dockerfile: Dockerfile
-      target: dev
-    ports:
-      - "8001:8000"
-    environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/subscriptionservice
-      KAFKA_BOOTSTRAP_SERVERS: redpanda:29092
-    volumes:
-      - ./SubscriptionService:/app
-      - ./libs:/libs
-      - ./contracts:/contracts
+      context: .
+      dockerfile: SubscriptionService/Dockerfile
+    container_name: subscription-service
+    restart: unless-stopped
     depends_on:
       postgres:
         condition: service_healthy
+      kafka:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://subscription_service_role:${SUBSCRIPTION_SERVICE_DB_PASSWORD}@postgres:5432/fastapi_ms
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      DB_HOST: postgres
+      DB_PORT: 5432
+      KAFKA_HOST: kafka
+      KAFKA_PORT: 29092
+      APP_NAME: SubscriptionService
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8001
+      DEBUG: "false"
+      DB_ECHO: "false"
+      DB_POOL_SIZE: 5
+      DB_MAX_OVERFLOW: 10
+      # STRIPE_API_KEY: ${STRIPE_API_KEY}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+    ports:
+      - "8001:8001"
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
 
 volumes:
   postgres_data:
+  zookeeper_data:
+  zookeeper_log:
+  kafka_data:
