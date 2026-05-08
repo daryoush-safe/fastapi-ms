@@ -10,18 +10,21 @@ dependencies = [
 
 [tool.uv.workspace]
 members = [
-    "libs/shared-core",
-    "libs/shared-infra",
+    "libs/shared_core",
+    "libs/shared_infra",
+    "contracts",
     "UserService",
     "SubscriptionService",
 ]
 
 [tool.pyright]
-# Pylance uses Pyright settings
-include = ["UserService/src", "SubscriptionService/src", "libs"]
+include = ["UserService/src", "SubscriptionService/src", "libs", "contracts"]
+extraPaths = ["libs", "contracts"]
+venvPath = "."
+venv = ".venv"
 executionEnvironments = [
-  { root = "UserService" },
-  { root = "SubscriptionService" }
+  { root = "UserService", extraPaths = ["libs", "."] },
+  { root = "SubscriptionService", extraPaths = ["libs", "."] }
 ]
 
 [dependency-groups]

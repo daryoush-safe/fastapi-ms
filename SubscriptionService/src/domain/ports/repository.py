@@ -5,6 +5,8 @@ from src.domain.models import Subscription
 
 
 class AbstractSubscriptionRepository(ABC):
+    seen: set[Subscription]
+
     @abstractmethod
     async def get_by_id(self, subscription_id: UUID) -> Subscription | None: ...
 

@@ -5,17 +5,24 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.config import get_settings
+from src.interfaces.consumers.event_registry import UserServiceEventRegistry
+from src.interfaces.consumers.kafka_handlers import UserServiceKafkaConsumer
 from src.interfaces.http.api.v1.users import router as users_router
 from src.interfaces.http.exception_handlers import register_exception_handlers
 
 settings = get_settings()
 
+_consumer: UserServiceKafkaConsumer | None = None
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    # startup
+    global _consumer
+    registry = UserServiceEventRegistry()
+    _consumer = UserServiceKafkaConsumer(registry)
+    await _consumer.start()
     yield
-    # shutdown
+    await _consumer.stop()
 
 
 def create_app() -> FastAPI:
@@ -24,7 +31,6 @@ def create_app() -> FastAPI:
         debug=settings.debug,
         lifespan=lifespan,
     )
-
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -32,16 +38,12 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
     app.include_router(users_router, prefix="/api/v1")
-
     register_exception_handlers(app)
-
     return app
 
 
 app = create_app()
-
 
 if __name__ == "__main__":
     uvicorn.run(

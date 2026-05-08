@@ -1,58 +1,95 @@
 services:
-
   postgres:
     image: postgres:16-alpine
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_MULTIPLE_DATABASES: userservice,subscriptionservice
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./PostgresDB/init:/docker-entrypoint-initdb.d # Runs your SQL scripts
+    command: ["postgres", "-c", "wal_level=logical"] # Required for Debezium
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
-      timeout: 5s
       retries: 5
+
+  # Simple Kafka replacement
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:latest
+    command:
+      - redpanda start
+      - --overprovisioned
+      - --smp 1
+      - --memory 1G
+      - --reserve-memory 0M
+      - --node-id 0
+      - --check=false
+      - --kafka-addr PLAINTEXT://0.0.0.0:29092,OUTSIDE://0.0.0.0:9092
+      - --advertise-kafka-addr PLAINTEXT://redpanda:29092,OUTSIDE://localhost:9092
+    ports:
+      - "9092:9092"
+
+  kafka-connect:
+    image: quay.io/debezium/connect:latest
+    environment:
+      BOOTSTRAP_SERVERS: redpanda:29092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: my_connect_configs
+      OFFSET_STORAGE_TOPIC: my_connect_offsets
+      STATUS_STORAGE_TOPIC: my_connect_statuses
+      # Mapping env vars for the JSON configs
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redpanda:
+        condition: service_started
+    volumes:
+      - ./debezium/connectors:/debezium/connectors
+      - ./debezium/bootstrap.sh:/debezium/bootstrap.sh
+    entrypoint: ["/debezium/bootstrap.sh"]
 
   user-service:
     build:
       context: ./UserService
+      dockerfile: Dockerfile
       target: dev
     ports:
       - "8000:8000"
-    env_file:
-      - .env
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/userservice
+      KAFKA_BOOTSTRAP_SERVERS: redpanda:29092
+    volumes:
+      - ./UserService:/app
+      - ./libs:/libs # Mount shared libs for live reload
+      - ./contracts:/contracts
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./UserService:/app
-    command: >
-      sh -c "alembic upgrade head &&
-             uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"
 
   subscription-service:
     build:
       context: ./SubscriptionService
+      dockerfile: Dockerfile
       target: dev
     ports:
       - "8001:8000"
-    env_file:
-      - .env
     environment:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/subscriptionservice
+      KAFKA_BOOTSTRAP_SERVERS: redpanda:29092
+    volumes:
+      - ./SubscriptionService:/app
+      - ./libs:/libs
+      - ./contracts:/contracts
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./SubscriptionService:/app
-    command: >
-      sh -c "alembic upgrade head &&
-             uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload"
 
 volumes:
   postgres_data:

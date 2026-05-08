@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from uuid import UUID
 
 from sqlalchemy import select
@@ -10,20 +12,29 @@ from src.infrastructure.persistence.postgres.models.user_orm import UserORM
 class SqlAlchemyUserRepository(AbstractUserRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
+        self.seen: set[User] = set()
 
     async def get_by_email(self, email: str) -> User | None:
         result = await self._session.execute(
             select(UserORM).where(UserORM.email == email)
         )
         orm = result.scalar_one_or_none()
-        return self._to_domain(orm) if orm else None
+        if orm is None:
+            return None
+        user = self._to_domain(orm)
+        self.seen.add(user)
+        return user
 
     async def get_by_id(self, user_id: UUID) -> User | None:
         result = await self._session.execute(
             select(UserORM).where(UserORM.id == user_id)
         )
         orm = result.scalar_one_or_none()
-        return self._to_domain(orm) if orm else None
+        if orm is None:
+            return None
+        user = self._to_domain(orm)
+        self.seen.add(user)
+        return user
 
     async def exists_by_email(self, email: str) -> bool:
         result = await self._session.execute(
@@ -32,9 +43,11 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
         return result.scalar_one_or_none() is not None
 
     async def add(self, user: User) -> None:
+        self.seen.add(user)
         self._session.add(self._to_orm(user))
 
     async def update(self, user: User) -> None:
+        self.seen.add(user)
         orm = await self._session.get(UserORM, user.id)
         if orm is None:
             raise ValueError(f"User {user.id} not found")

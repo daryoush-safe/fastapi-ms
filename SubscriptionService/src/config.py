@@ -23,6 +23,9 @@ class Settings(BaseSettings):
         "http://localhost:3000/cancel", alias="STRIPE_CANCEL_URL"
     )
 
+    # Kafka
+    kafka_bootstrap_servers: str = Field("kafka:29092", alias="KAFKA_BOOTSTRAP_SERVERS")
+
     # App
     app_name: str = Field("SubscriptionService", alias="APP_NAME")
     app_host: str = Field("0.0.0.0", alias="APP_HOST")

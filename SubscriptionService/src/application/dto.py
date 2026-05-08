@@ -23,3 +23,14 @@ class CreateCheckoutSessionDTO:
 class HandleWebhookDTO:
     payload: bytes
     sig_header: str
+
+
+@dataclass(frozen=True)
+class ActivateSubscriptionByEmailDTO:
+    email: str
+
+
+@dataclass(frozen=True)
+class UpdateSubscriptionEmailDTO:
+    old_email: str
+    new_email: str

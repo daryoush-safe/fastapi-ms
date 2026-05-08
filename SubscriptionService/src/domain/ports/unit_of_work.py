@@ -18,3 +18,6 @@ class AbstractUnitOfWork(ABC):
 
     @abstractmethod
     async def rollback(self) -> None: ...
+
+    @abstractmethod
+    async def publish_collected_events(self) -> None: ...

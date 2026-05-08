@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     db_pool_size: int = Field(5, alias="DB_POOL_SIZE")
     db_max_overflow: int = Field(10, alias="DB_MAX_OVERFLOW")
 
+    # Kafka
+    kafka_bootstrap_servers: str = Field("kafka:29092", alias="KAFKA_BOOTSTRAP_SERVERS")
+
     # App
     app_name: str = Field("UserService", alias="APP_NAME")
     app_host: str = Field("0.0.0.0", alias="APP_HOST")

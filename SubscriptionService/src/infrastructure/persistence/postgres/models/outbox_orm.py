@@ -15,7 +15,7 @@ class OutboxStatus(str, enum.Enum):
 
 
 class OutboxORM(Base):
-    __tablename__ = "outbox"
+    __tablename__ = "subscriptions_outbox"
     __table_args__ = (
         Index("ix_outbox_status_created_at", "status", "created_at"),
         {"schema": "auth"},
