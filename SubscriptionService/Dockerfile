@@ -35,6 +35,8 @@ COPY --from=builder /app/.venv /app/.venv
 COPY SubscriptionService/src ./src
 COPY SubscriptionService/migrations ./migrations
 COPY SubscriptionService/alembic.ini ./alembic.ini
+COPY libs ./libs
+COPY contracts ./contracts
 
 COPY scripts/wait_for_services.sh /wait_for_services.sh
 

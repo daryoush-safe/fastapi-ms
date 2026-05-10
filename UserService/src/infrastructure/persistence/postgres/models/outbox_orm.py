@@ -29,7 +29,10 @@ class OutboxORM(Base):
     event_type: Mapped[str] = mapped_column(String, nullable=False)
     payload: Mapped[str] = mapped_column(Text, nullable=False)
     status: Mapped[OutboxStatus] = mapped_column(
-        Enum(OutboxStatus), default=OutboxStatus.PENDING, nullable=False
+        Enum(OutboxStatus, name="outboxstatus_user", schema="auth",
+             values_callable=lambda obj: [e.value for e in obj]),
+        default=OutboxStatus.PENDING,
+        nullable=False,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

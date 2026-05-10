@@ -4,11 +4,11 @@
     "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
     "tasks.max": "1",
 
-    "database.hostname": "${file:/kafka/external-configuration/connector.properties:DB_HOST}",
-    "database.port": "${file:/kafka/external-configuration/connector.properties:DB_PORT}",
-    "database.user": "${file:/kafka/external-configuration/connector.properties:DB_USER}",
-    "database.password": "${file:/kafka/external-configuration/connector.properties:DB_PASSWORD}",
-    "database.dbname": "${file:/kafka/external-configuration/connector.properties:DB_NAME}",
+    "database.hostname": "${DB_HOST}",
+    "database.port": "${DB_PORT}",
+    "database.user": "${DB_USER}",
+    "database.password": "${DB_PASSWORD}",
+    "database.dbname": "${DB_NAME}",
 
     "topic.prefix": "subscriptionservice",
     "schema.include.list": "auth",
@@ -16,6 +16,7 @@
 
     "plugin.name": "pgoutput",
     "publication.name": "dbz_publication_subscription",
+    "publication.autocreate.mode": "disabled",
     "slot.name": "debezium_subscription",
     "tombstones.on.delete": "false",
 

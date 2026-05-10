@@ -1,5 +1,5 @@
 from src.application.dto import CreateUserDTO
-from src.application.services import PasswordHasher
+from src.application.password_hasher import PasswordHasher
 from src.domain.exceptions import UserAlreadyExistsError
 from src.domain.models import User
 from src.domain.ports.unit_of_work import AbstractUnitOfWork

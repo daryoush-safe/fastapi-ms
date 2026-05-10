@@ -1,5 +1,4 @@
 services:
-
   # ── PostgreSQL ───────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16-alpine
@@ -44,7 +43,13 @@ services:
     networks:
       - backend
     healthcheck:
-      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/2181 && echo -e 'ruok' >&3 && grep imok <&3"]
+      test:
+        [
+          "CMD",
+          "bash",
+          "-c",
+          "exec 3<>/dev/tcp/127.0.0.1/2181 && echo -e 'ruok' >&3 && grep imok <&3",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -74,11 +79,15 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
     ports:
-      - "9092:9092"       # external (host machine)
+      - "9092:9092" # external (host machine)
     networks:
       - backend
     healthcheck:
-      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:9092"]
+      test:
+        [
+          "CMD-SHELL",
+          "kafka-broker-api-versions --bootstrap-server localhost:9092",
+        ]
       interval: 15s
       timeout: 10s
       retries: 10
@@ -118,7 +127,7 @@ services:
 
   # ── Debezium bootstrap (registers connectors once, then exits) ────────────────
   debezium-bootstrap:
-    image: debezium/connect:2.7        # has curl + python3 built in
+    image: debezium/connect:2.7 # has curl + python3 built in
     container_name: debezium-bootstrap
     restart: "no"
     depends_on:
@@ -129,13 +138,18 @@ services:
     entrypoint: ["/bin/bash", "/debezium/bootstrap.sh"]
     environment:
       KAFKA_CONNECT_URL: http://kafka-connect:8083
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: debezium_role
+      DB_PASSWORD: debezium_pass
+      DB_NAME: fastapi_ms
     networks:
       - backend
 
   # ── User Service ─────────────────────────────────────────────────────────────
   user-service:
     build:
-      context: .                        # root — so Dockerfile can reach libs/
+      context: . # root — so Dockerfile can reach libs/
       dockerfile: UserService/Dockerfile
     container_name: user-service
     restart: unless-stopped

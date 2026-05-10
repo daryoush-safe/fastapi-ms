@@ -39,6 +39,7 @@ def do_run_migrations(connection) -> None:
         connection=connection,
         target_metadata=target_metadata,
         include_schemas=True,
+        version_table="alembic_version_subscription",
         version_table_schema="auth",
     )
     with context.begin_transaction():

@@ -1,25 +1,16 @@
-import bcrypt
-
 from src.application.dto import (
     CreateUserDTO,
     DeactivateUserDTO,
     GetUserDTO,
     ResetPasswordDTO,
 )
+from src.application.password_hasher import PasswordHasher
 from src.application.use_cases.create_user import CreateUserUseCase
 from src.application.use_cases.deactivate_user import DeactivateUserUseCase
 from src.application.use_cases.get_user import GetUserUseCase
 from src.application.use_cases.reset_password import ResetPasswordUseCase
 from src.domain.models import User
 from src.domain.ports.unit_of_work import AbstractUnitOfWork
-
-
-class PasswordHasher:
-    def hash(self, plain: str) -> str:
-        return bcrypt.hashpw(plain.encode(), bcrypt.gensalt()).decode()
-
-    def verify(self, plain: str, hashed: str) -> bool:
-        return bcrypt.checkpw(plain.encode(), hashed.encode())
 
 
 class UserService:

@@ -14,27 +14,38 @@ wait_for_connect() {
 
 register_connector() {
   local file="$1"
+  local payload
+  # substitute only DB_* vars; leave Debezium expressions like ${routedByValue} intact
+  payload=$(envsubst '${DB_HOST} ${DB_PORT} ${DB_USER} ${DB_PASSWORD} ${DB_NAME}' < "$file")
+
   local name
-  name=$(python3 -c "import json,sys; print(json.load(sys.stdin)['name'])" < "$file")
+  name=$(echo "$payload" | python3 -c "import json,sys; print(json.load(sys.stdin)['name'])")
 
   echo "Registering connector: ${name}"
 
-  # Check if already exists
+  local response http_code
   if curl -sf "${CONNECT_URL}/connectors/${name}" > /dev/null 2>&1; then
     echo "  → already registered, updating…"
-    curl -sf -X PUT \
+    response=$(curl -s -o /tmp/curl_body -w "%{http_code}" -X PUT \
       -H "Content-Type: application/json" \
-      --data @"$file" \
-      "${CONNECT_URL}/connectors/${name}/config" | python3 -m json.tool
+      --data "$payload" \
+      "${CONNECT_URL}/connectors/${name}/config")
   else
     echo "  → creating…"
-    curl -sf -X POST \
+    response=$(curl -s -o /tmp/curl_body -w "%{http_code}" -X POST \
       -H "Content-Type: application/json" \
-      --data @"$file" \
-      "${CONNECT_URL}/connectors" | python3 -m json.tool
+      --data "$payload" \
+      "${CONNECT_URL}/connectors")
   fi
 
-  echo "  ✓ ${name} registered."
+  http_code="$response"
+  if [ "$http_code" -ge 400 ]; then
+    echo "  ✗ failed (HTTP ${http_code}):"
+    cat /tmp/curl_body
+    exit 1
+  fi
+
+  echo "  ✓ ${name} registered (HTTP ${http_code})."
 }
 
 wait_for_connect

@@ -16,7 +16,7 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
 
     async def __aenter__(self) -> Self:
         self._session = self._session_factory()
-        self.subscriptions = SqlAlchemySubscriptionRepository(self._session)
+        self.subscription = SqlAlchemySubscriptionRepository(self._session)
         self._publisher = OutboxPublisher(self._session)
         return self
 
@@ -37,6 +37,6 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         await self._session.rollback()
 
     async def publish_collected_events(self) -> None:
-        for sub in self.subscriptions.seen:
+        for sub in self.subscription.seen:
             for event in sub.pull_events():
                 await self._publisher.publish(event)

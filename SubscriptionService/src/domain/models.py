@@ -13,7 +13,7 @@ from src.domain.events import (
 from libs.shared_core.base_aggregate import AggregateRoot
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class Subscription(AggregateRoot):
     id: uuid.UUID
     type: str | None

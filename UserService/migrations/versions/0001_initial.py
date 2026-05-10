@@ -19,8 +19,6 @@ default_created_at: str = "now()"
 
 
 def upgrade() -> None:
-    op.execute("CREATE SCHEMA IF NOT EXISTS auth")
-
     op.create_table(
         "users",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
@@ -48,7 +46,7 @@ def upgrade() -> None:
     )
 
     op.create_table(
-        "outbox",
+        "users_outbox",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("aggregate_id", sa.String(), nullable=False),
         sa.Column("aggregate_type", sa.String(), nullable=False),
@@ -57,7 +55,9 @@ def upgrade() -> None:
         sa.Column(
             "status",
             sa.Enum(
-                "pending", "processed", "failed", name="outboxstatus", schema="auth"
+                "pending", "processed", "failed",
+                name="outboxstatus_user",
+                schema="auth",
             ),
             nullable=False,
             server_default="pending",
@@ -73,17 +73,20 @@ def upgrade() -> None:
         schema="auth",
     )
     op.create_index(
-        "ix_outbox_status_created_at",
-        "outbox",
+        "ix_users_outbox_status_created_at",
+        "users_outbox",
         ["status", "created_at"],
         schema="auth",
+    )
+    op.execute(
+        "CREATE PUBLICATION dbz_publication_user FOR TABLE auth.users_outbox"
     )
 
 
 def downgrade() -> None:
-    op.drop_index("ix_outbox_status_created_at", table_name="outbox", schema="auth")
-    op.drop_table("outbox", schema="auth")
+    op.execute("DROP PUBLICATION IF EXISTS dbz_publication_user")
+    op.drop_index("ix_users_outbox_status_created_at", table_name="users_outbox", schema="auth")
+    op.drop_table("users_outbox", schema="auth")
+    op.execute("DROP TYPE IF EXISTS auth.outboxstatus_user")
     op.drop_index("ix_auth_users_email", table_name="users", schema="auth")
     op.drop_table("users", schema="auth")
-    op.execute("DROP TYPE IF EXISTS auth.outboxstatus")
-    op.execute("DROP SCHEMA IF EXISTS auth")

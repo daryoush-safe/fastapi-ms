@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from libs.shared_core.base_event import DomainEvent
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class AggregateRoot:
     _domain_events: list[DomainEvent] = field(
         default_factory=list, init=False, repr=False, compare=False

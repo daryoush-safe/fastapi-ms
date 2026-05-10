@@ -9,7 +9,7 @@ from src.domain.events import UserCreated, UserEmailChanged, UserProfileUpdated
 from libs.shared_core.base_aggregate import AggregateRoot
 
 
-@dataclass
+@dataclass(unsafe_hash=True)
 class User(AggregateRoot):
     id: uuid.UUID
     username: str

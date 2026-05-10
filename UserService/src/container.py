@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from src.application.services import PasswordHasher, UserService
+from src.application.password_hasher import PasswordHasher
+from src.application.services import UserService
 from src.config import Settings, get_settings
 from src.infrastructure.persistence.postgres.unit_of_work import SqlAlchemyUnitOfWork
 
