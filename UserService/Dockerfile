@@ -1,7 +1,8 @@
 # ── Stage 1: builder ──────────────────────────────────────────────────────────
 FROM python:3.14-slim AS builder
 
-ENV PIP_INDEX_URL=https://package-mirror.liara.ir/repository/pypi/simple \
+# PIP_INDEX_URL=https://package-mirror.liara.ir/repository/pypi/simple
+ENV PIP_INDEX_URL=https://mirror-pypi.runflare.com/simple \
     PIP_NO_CACHE_DIR=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1

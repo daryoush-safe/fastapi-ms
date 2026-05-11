@@ -2,22 +2,22 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 
 from src.domain.events import UserCreated, UserEmailChanged, UserProfileUpdated
 
 from libs.shared_core.base_aggregate import AggregateRoot
 
 
-@dataclass(unsafe_hash=True)
+@dataclass(eq=False)
 class User(AggregateRoot):
     id: uuid.UUID
     username: str
     email: str
     hashed_password: str
     is_active: bool = True
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     @classmethod
     def create(cls, username: str, email: str, hashed_password: str) -> User:

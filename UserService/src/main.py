@@ -5,6 +5,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from src.config import get_settings
+from src.container import Container
 from src.interfaces.consumers.event_registry import UserServiceEventRegistry
 from src.interfaces.consumers.kafka_handlers import UserServiceKafkaConsumer
 from src.interfaces.http.api.v1.users import router as users_router
@@ -18,7 +19,7 @@ _consumer: UserServiceKafkaConsumer | None = None
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     global _consumer
-    registry = UserServiceEventRegistry()
+    registry = UserServiceEventRegistry(user_service=Container.user_service())
     _consumer = UserServiceKafkaConsumer(registry)
     await _consumer.start()
     yield

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 
 from src.domain.events import (
     SubscriptionActivated,
@@ -13,14 +13,14 @@ from src.domain.events import (
 from libs.shared_core.base_aggregate import AggregateRoot
 
 
-@dataclass(unsafe_hash=True)
+@dataclass(eq=False)
 class Subscription(AggregateRoot):
     id: uuid.UUID
     type: str | None
     email: str
     is_active: bool = False
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     @classmethod
     def create(cls, type: str, email: str) -> Subscription:

@@ -5,11 +5,19 @@ from dataclasses import dataclass, field
 from libs.shared_core.base_event import DomainEvent
 
 
-@dataclass(unsafe_hash=True)
+@dataclass
 class AggregateRoot:
     _domain_events: list[DomainEvent] = field(
-        default_factory=list, init=False, repr=False, compare=False
+        default_factory=list, init=False, repr=False, compare=False, hash=False
     )
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, self.__class__):
+            return False
+        return getattr(self, "id", None) == getattr(other, "id", None)
+
+    def __hash__(self) -> int:
+        return hash(getattr(self, "id", id(self)))
 
     def record_event(self, event: DomainEvent) -> None:
         self._domain_events.append(event)

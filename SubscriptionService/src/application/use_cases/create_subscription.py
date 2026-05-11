@@ -1,4 +1,5 @@
 from src.application.dto import CreateSubscriptionDTO
+from src.domain.exceptions import SubscriptionAlreadyExistsError
 from src.domain.models import Subscription
 from src.domain.ports.unit_of_work import AbstractUnitOfWork
 
@@ -9,6 +10,10 @@ class CreateSubscriptionUseCase:
 
     async def execute(self, dto: CreateSubscriptionDTO) -> Subscription:
         async with self._uow as uow:
+            existing = await uow.subscription.get_by_email(dto.email)
+            if existing is not None:
+                raise SubscriptionAlreadyExistsError(dto.email)
+
             subscription = Subscription.create(
                 type=dto.subscription_type,
                 email=dto.email,

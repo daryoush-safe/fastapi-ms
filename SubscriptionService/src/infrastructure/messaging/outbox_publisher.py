@@ -27,7 +27,9 @@ class OutboxPublisher(AbstractEventPublisher):
     def _serialize(event: DomainEvent) -> dict:
         import dataclasses
 
-        return {
+        data = {
             k: str(v) if not isinstance(v, (str, int, float, bool, type(None))) else v
             for k, v in dataclasses.asdict(event).items()
         }
+        data["event_type"] = event.event_type
+        return data

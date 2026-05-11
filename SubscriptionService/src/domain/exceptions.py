@@ -11,6 +11,12 @@ class SubscriptionNotFoundError(DomainError):
         super().__init__(f"Subscription with ID '{id}' not found")
 
 
+class SubscriptionAlreadyExistsError(Exception):
+    def __init__(self, email: str) -> None:
+        super().__init__(f"Subscription for email '{email}' already exists")
+        self.email = email
+
+
 class PaymentProviderError(DomainError):
     def __init__(self) -> None:
         super().__init__("Payment provider not working")
