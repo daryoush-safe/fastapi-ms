@@ -1,0 +1,4 @@
+tracking_uri: "http://mlflow:5000" 
+experiment_name: "AnomalyDetection"
+registry_model_name: "anomaly-detection"
+production_model_name: "anomaly-detection-prod"

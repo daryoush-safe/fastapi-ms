@@ -1,0 +1,65 @@
+services:
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    container_name: mlflow
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow-data:/mlflow/mlruns
+      - mlflow-artifacts:/mlflow/artifacts
+    environment:
+      - MLFLOW_ALLOWED_HOSTS=*
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --backend-store-uri sqlite:////mlflow/mlruns/mlflow.db
+      --default-artifact-root mlflow-artifacts:/
+      --serve-artifacts
+      --allowed-hosts *
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health')\""]
+      interval: 15s
+      timeout: 10s
+      retries: 15
+      start_period: 30s
+
+  train:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mlservice-train
+    working_dir: /mlflow/MLService
+    environment:
+      - PYTHONPATH=/mlflow/MLService:/mlflow/MLService/src
+      - ML_ENV=dev
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    command: python3 scripts/train.py
+    volumes:
+      - mlflow-data:/mlflow/mlruns
+      - mlflow-artifacts:/mlflow/artifacts
+
+  serve:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mlservice-serve
+    working_dir: /mlflow/MLService
+    environment:
+      - PYTHONPATH=/mlflow/MLService:/mlflow/MLService/src
+      - ML_ENV=dev
+    ports:
+      - "8000:8000"
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    command: uvicorn scripts.serve:app --host 0.0.0.0 --port 8000
+    volumes:
+      - mlflow-data:/mlflow/mlruns
+      - mlflow-artifacts:/mlflow/artifacts
+
+volumes:
+  mlflow-data:
+  mlflow-artifacts:
