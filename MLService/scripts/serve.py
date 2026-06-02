@@ -36,8 +36,6 @@ def predict(payload: dict[str, Any]) -> JSONResponse:
         predictions = _inference.predict(payload["data"])
         return JSONResponse({"prediction": predictions})
     except KeyError:
-        return JSONResponse(
-            status_code=422, content={"error": "Payload must contain 'data' key"}
-        )
+        return JSONResponse(status_code=422, content={"error": "Payload must contain 'data' key"})
     except Exception as exc:  # noqa: BLE001
         return JSONResponse(status_code=500, content={"error": str(exc)})

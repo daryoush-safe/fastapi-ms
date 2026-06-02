@@ -45,9 +45,7 @@ class TrainingPipeline:
 
     def run(self) -> None:
         X, y = self._load_data()
-        X_train, X_test, y_train, y_test, X_train_res, y_train_res = self._preprocess(
-            X, y
-        )
+        X_train, X_test, y_train, y_test, X_train_res, y_train_res = self._preprocess(X, y)
         best_params = self._optimize(X_train_res, y_train_res, X_test, y_test)
         run_ids = self._train_all(
             X_train, y_train, X_train_res, y_train_res, X_test, y_test, best_params
@@ -88,9 +86,7 @@ class TrainingPipeline:
     def _optimize(self, X_train_res, y_train_res, X_test, y_test) -> dict:
         logger.info("Starting Optuna optimisation (%d trials)", settings.train.n_trials)
         optimizer = OptunaOptimizer(X_train_res, y_train_res, X_test, y_test)
-        study: optuna.Study = optimizer.optimize_random_forest(
-            n_trials=settings.train.n_trials
-        )
+        study: optuna.Study = optimizer.optimize_random_forest(n_trials=settings.train.n_trials)
         logger.info("Best params: %s", study.best_params)
         return study.best_params
 

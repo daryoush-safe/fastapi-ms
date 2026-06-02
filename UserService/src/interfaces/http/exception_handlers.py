@@ -35,9 +35,7 @@ def inactive_user_handler(request: Request, exc: Exception) -> JSONResponse:
 
 def unhandled_domain_error_handler(request: Request, exc: Exception) -> JSONResponse:
     logger.error("Unhandled domain error: %s", exc, exc_info=True)
-    return JSONResponse(
-        status_code=500, content=_error_body("An unexpected error occurred")
-    )
+    return JSONResponse(status_code=500, content=_error_body("An unexpected error occurred"))
 
 
 def register_exception_handlers(app: FastAPI) -> None:

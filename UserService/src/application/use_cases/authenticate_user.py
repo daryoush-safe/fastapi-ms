@@ -13,9 +13,7 @@ class AuthenticateUserUseCase:
     async def execute(self, dto: AuthenticateUserDTO) -> User:
         async with self._uow as uow:
             user = await uow.users.get_by_email(dto.email)
-            if user is None or not self._hasher.verify(
-                dto.password, user.hashed_password
-            ):
+            if user is None or not self._hasher.verify(dto.password, user.hashed_password):
                 raise InvalidCredentialsError()
             if not user.is_active:
                 raise InactiveUserError(user.email)

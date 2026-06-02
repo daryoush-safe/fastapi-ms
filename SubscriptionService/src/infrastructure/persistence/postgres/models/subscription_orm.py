@@ -11,9 +11,7 @@ class SubscriptionORM(Base):
     __tablename__ = "subscriptions"
     __table_args__ = {"schema": "auth"}
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email: Mapped[str] = mapped_column(String, unique=False, index=True, nullable=False)
     subscription_type: Mapped[str | None] = mapped_column(String, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)

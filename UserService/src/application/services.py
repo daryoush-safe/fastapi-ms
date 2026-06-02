@@ -27,9 +27,7 @@ class UserService:
         self._hasher = hasher
 
     async def authenticate(self, dto: AuthenticateUserDTO) -> User:
-        return await AuthenticateUserUseCase(self._uow_factory(), self._hasher).execute(
-            dto
-        )
+        return await AuthenticateUserUseCase(self._uow_factory(), self._hasher).execute(dto)
 
     async def get_user(self, dto: GetUserDTO) -> User:
         return await GetUserUseCase(self._uow_factory()).execute(dto)
@@ -38,9 +36,7 @@ class UserService:
         return await CreateUserUseCase(self._uow_factory(), self._hasher).execute(dto)
 
     async def reset_password(self, dto: ResetPasswordDTO) -> None:
-        return await ResetPasswordUseCase(self._uow_factory(), self._hasher).execute(
-            dto
-        )
+        return await ResetPasswordUseCase(self._uow_factory(), self._hasher).execute(dto)
 
     async def deactivate_user(self, dto: DeactivateUserDTO) -> None:
         return await DeactivateUserUseCase(self._uow_factory()).execute(dto)

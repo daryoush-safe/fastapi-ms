@@ -1,0 +1,21 @@
+# Production image override.
+#
+# Use TOGETHER with the base compose file on the deploy host:
+#   docker compose -f docker-compose.yaml -f docker-compose.prod.yaml pull
+#   docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
+#
+# This swaps the locally-built `build:` images for pre-built ones from GHCR.
+# Requires IMAGE_OWNER and IMAGE_TAG in the host .env (the release workflow writes them).
+# `pull` is run before `up`, so the pulled image is used (no rebuild on the host).
+#
+# ⚠️  Pulling these from inside Iran via ghcr.io is often blocked — see the
+#     deploy job header in .github/workflows/release.yml for the save|scp|load
+#     alternative if your host is in Iran.
+services:
+  user-service:
+    image: ghcr.io/${IMAGE_OWNER}/user-service:${IMAGE_TAG}
+    pull_policy: always
+
+  subscription-service:
+    image: ghcr.io/${IMAGE_OWNER}/subscription-service:${IMAGE_TAG}
+    pull_policy: always

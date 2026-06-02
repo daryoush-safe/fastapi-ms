@@ -26,9 +26,7 @@ class Container:
                 pool_size=cls._get_settings().db_pool_size,
                 max_overflow=cls._get_settings().db_max_overflow,
             )
-            cls._session_factory = async_sessionmaker(
-                cls._engine, expire_on_commit=False
-            )
+            cls._session_factory = async_sessionmaker(cls._engine, expire_on_commit=False)
         return cls._session_factory
 
     @classmethod

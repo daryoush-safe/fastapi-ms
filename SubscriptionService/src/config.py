@@ -16,12 +16,8 @@ class Settings(BaseSettings):
     # Stripe
     stripe_secret_key: str = Field(..., alias="STRIPE_SECRET_KEY")
     stripe_webhook_secret: str = Field(..., alias="STRIPE_WEBHOOK_SECRET")
-    stripe_success_url: str = Field(
-        "http://localhost:3000/success", alias="STRIPE_SUCCESS_URL"
-    )
-    stripe_cancel_url: str = Field(
-        "http://localhost:3000/cancel", alias="STRIPE_CANCEL_URL"
-    )
+    stripe_success_url: str = Field("http://localhost:3000/success", alias="STRIPE_SUCCESS_URL")
+    stripe_cancel_url: str = Field("http://localhost:3000/cancel", alias="STRIPE_CANCEL_URL")
 
     # Kafka
     kafka_bootstrap_servers: str = Field("kafka:29092", alias="KAFKA_BOOTSTRAP_SERVERS")
@@ -32,12 +28,10 @@ class Settings(BaseSettings):
     app_port: int = Field(8000, alias="APP_PORT")
     debug: bool = Field(False, alias="DEBUG")
 
-    # CORS — comma-separated list of allowed origins. Never use "*" together with
-    # credentialed requests; list the exact frontend origins instead.
+    # CORS
     cors_origins: str = Field("http://localhost:3000", alias="CORS_ORIGINS")
 
-    # Auth (JWT). This service only *verifies* tokens minted by UserService, so the
-    # secret/algorithm must match UserService exactly.
+    # Auth (JWT)
     jwt_secret: str = Field(..., alias="JWT_SECRET")
     jwt_algorithm: str = Field("HS256", alias="JWT_ALGORITHM")
 

@@ -4,9 +4,8 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-from src.domain.events import UserCreated, UserEmailChanged, UserProfileUpdated
-
 from shared_core.base_aggregate import AggregateRoot
+from src.domain.events import UserCreated, UserEmailChanged, UserProfileUpdated
 
 
 @dataclass(eq=False)
@@ -27,17 +26,13 @@ class User(AggregateRoot):
             email=email,
             hashed_password=hashed_password,
         )
-        user.record_event(
-            UserCreated(user_id=user.id, email=user.email, username=user.username)
-        )
+        user.record_event(UserCreated(user_id=user.id, email=user.email, username=user.username))
         return user
 
     def change_email(self, new_email: str) -> None:
         old = self.email
         self.email = new_email
-        self.record_event(
-            UserEmailChanged(user_id=self.id, old_email=old, new_email=new_email)
-        )
+        self.record_event(UserEmailChanged(user_id=self.id, old_email=old, new_email=new_email))
 
     def update_profile(self, username: str) -> None:
         self.username = username

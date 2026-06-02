@@ -9,6 +9,4 @@ def get_subscription_service() -> SubscriptionService:
     return Container.subscription_service()
 
 
-SubscriptionServiceDep = Annotated[
-    SubscriptionService, Depends(get_subscription_service)
-]
+SubscriptionServiceDep = Annotated[SubscriptionService, Depends(get_subscription_service)]

@@ -4,13 +4,12 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
+from shared_core.base_aggregate import AggregateRoot
 from src.domain.events import (
     SubscriptionActivated,
     SubscriptionCreated,
     SubscriptionDeactivated,
 )
-
-from shared_core.base_aggregate import AggregateRoot
 
 
 @dataclass(eq=False)
@@ -47,6 +46,4 @@ class Subscription(AggregateRoot):
 
     def deactivate(self) -> None:
         self.is_active = False
-        self.record_event(
-            SubscriptionDeactivated(subscription_id=self.id, email=self.email)
-        )
+        self.record_event(SubscriptionDeactivated(subscription_id=self.id, email=self.email))

@@ -3,9 +3,8 @@ from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from src.config import get_settings
-
 from shared_core.security import TokenError, decode_access_token
+from src.config import get_settings
 
 _bearer = HTTPBearer(auto_error=False)
 

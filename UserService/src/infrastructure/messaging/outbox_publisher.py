@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import json
 
+from shared_core.base_event import DomainEvent
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.domain.ports.publisher import AbstractEventPublisher
 from src.infrastructure.persistence.postgres.models.outbox_orm import OutboxORM
 
 from contracts.topics import UserServiceTopics
-from shared_core.base_event import DomainEvent
 
 
 class OutboxPublisher(AbstractEventPublisher):

@@ -44,9 +44,7 @@ class MLflowTracker:
                 mlflow.set_tags(tags)
 
             mlflow.log_params(model.get_params())
-            mlflow.log_metrics(
-                {k: _dig(report, *path) for k, path in _METRIC_KEYS.items()}
-            )
+            mlflow.log_metrics({k: _dig(report, *path) for k, path in _METRIC_KEYS.items()})
 
             log_kwargs = {
                 "artifact_path": "model",
@@ -59,8 +57,6 @@ class MLflowTracker:
             elif hasattr(model, "fit"):
                 mlflow_sklearn.log_model(model, **log_kwargs)
             else:
-                raise TypeError(
-                    f"No MLflow logging flavour registered for {type(model).__name__}"
-                )
+                raise TypeError(f"No MLflow logging flavour registered for {type(model).__name__}")
 
             return run.info.run_id

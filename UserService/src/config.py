@@ -28,9 +28,7 @@ class Settings(BaseSettings):
     # Auth (JWT)
     jwt_secret: str = Field(..., alias="JWT_SECRET")
     jwt_algorithm: str = Field("HS256", alias="JWT_ALGORITHM")
-    jwt_access_token_expire_minutes: int = Field(
-        30, alias="JWT_ACCESS_TOKEN_EXPIRE_MINUTES"
-    )
+    jwt_access_token_expire_minutes: int = Field(30, alias="JWT_ACCESS_TOKEN_EXPIRE_MINUTES")
 
     @property
     def cors_origins_list(self) -> list[str]:

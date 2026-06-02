@@ -1,8 +1,11 @@
 # ── Stage 1: builder ──────────────────────────────────────────────────────────
 FROM python:3.14-slim AS builder
 
-# PIP_INDEX_URL=https://package-mirror.liara.ir/repository/pypi/simple
-ENV PIP_INDEX_URL=https://mirror-pypi.runflare.com/simple \
+# Package index
+ARG PIP_INDEX_URL=https://mirror-pypi.runflare.com/simple
+ARG UV_INDEX_URL=https://mirror-pypi.runflare.com/simple
+ENV PIP_INDEX_URL=${PIP_INDEX_URL} \
+    UV_INDEX_URL=${UV_INDEX_URL} \
     PIP_NO_CACHE_DIR=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -29,7 +32,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# # Copy virtualenv from builder
+# Copy virtualenv from builder
 COPY --from=builder /app/.venv /app/.venv
 
 # Copy service files

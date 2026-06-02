@@ -38,22 +38,14 @@ class SubscriptionService:
     async def create_subscription(self, dto: CreateSubscriptionDTO) -> Subscription:
         return await CreateSubscriptionUseCase(self._uow_factory()).execute(dto)
 
-    async def create_checkout_session(
-        self, dto: CreateCheckoutSessionDTO
-    ) -> CheckoutSession:
-        return await CreateCheckoutSessionUseCase(
-            self._uow_factory(), self._payment
-        ).execute(dto)
+    async def create_checkout_session(self, dto: CreateCheckoutSessionDTO) -> CheckoutSession:
+        return await CreateCheckoutSessionUseCase(self._uow_factory(), self._payment).execute(dto)
 
     async def handle_webhook(self, dto: HandleWebhookDTO) -> None:
         await HandleWebhookUseCase(self._uow_factory(), self._payment).execute(dto)
 
-    async def activate_subscription_by_email(
-        self, dto: ActivateSubscriptionByEmailDTO
-    ) -> None:
-        return await ActivateSubscriptionByEmailUseCase(self._uow_factory()).execute(
-            dto
-        )
+    async def activate_subscription_by_email(self, dto: ActivateSubscriptionByEmailDTO) -> None:
+        return await ActivateSubscriptionByEmailUseCase(self._uow_factory()).execute(dto)
 
     async def update_subscription_email(self, dto: UpdateSubscriptionEmailDTO) -> None:
         return await UpdateSubscriptionEmailUseCase(self._uow_factory()).execute(dto)

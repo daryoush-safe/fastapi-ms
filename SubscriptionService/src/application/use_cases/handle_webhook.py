@@ -33,15 +33,11 @@ class HandleWebhookUseCase:
             await self._handle_subscription_deleted(event.data)
 
         else:
-            logger.info(
-                "Unhandled Stripe event", extra={"event_type": event.event_type}
-            )
+            logger.info("Unhandled Stripe event", extra={"event_type": event.event_type})
 
     async def _handle_checkout_completed(self, data: dict) -> None:
         email: str | None = (data.get("customer_details") or {}).get("email")
-        subscription_type: str | None = data.get("metadata", {}).get(
-            "subscription_type", "premium"
-        )
+        subscription_type: str | None = data.get("metadata", {}).get("subscription_type", "premium")
 
         if email is None:
             logger.warning("checkout.session.completed received with no customer email")
@@ -59,14 +55,12 @@ class HandleWebhookUseCase:
 
     async def _handle_subscription_deleted(self, data: dict) -> None:
         metadata = data.get("metadata") or {}
-        email: str | None = metadata.get("email") or (
-            data.get("customer_details") or {}
-        ).get("email")
+        email: str | None = metadata.get("email") or (data.get("customer_details") or {}).get(
+            "email"
+        )
 
         if email is None:
-            logger.warning(
-                "customer.subscription.deleted received with no resolvable email"
-            )
+            logger.warning("customer.subscription.deleted received with no resolvable email")
             return
 
         async with self._uow as uow:

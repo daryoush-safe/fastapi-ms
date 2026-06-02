@@ -102,9 +102,7 @@ class BaseKafkaConsumer(ABC):
         finally:
             logger.info("Consumer worker %d shutting down", worker_id)
 
-    async def _process_message(
-        self, consumer: AIOKafkaConsumer, worker_id: int, msg: Any
-    ) -> None:
+    async def _process_message(self, consumer: AIOKafkaConsumer, worker_id: int, msg: Any) -> None:
         try:
             envelope = msg.value
             event_type: str = envelope.get("type", "")

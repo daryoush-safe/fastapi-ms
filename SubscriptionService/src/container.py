@@ -28,16 +28,11 @@ class Container:
                 pool_size=cls._get_settings().db_pool_size,
                 max_overflow=cls._get_settings().db_max_overflow,
             )
-            cls._session_factory = async_sessionmaker(
-                cls._engine, expire_on_commit=False
-            )
+            cls._session_factory = async_sessionmaker(cls._engine, expire_on_commit=False)
         return cls._session_factory
 
     @classmethod
     def _uow_factory(cls) -> Callable[[], AbstractUnitOfWork]:
-        # Return a callable that builds a *fresh* UoW (with its own session) per call.
-        # The UoW is stateful (binds a session + repositories in __aenter__), so a
-        # single shared instance would corrupt concurrent requests. Never cache it.
         session_factory = cls._get_session_factory()
         return lambda: SqlAlchemyUnitOfWork(session_factory)
 

@@ -1,10 +1,9 @@
 from fastapi import APIRouter
+from shared_core.security import create_access_token
 from src.application.dto import AuthenticateUserDTO
 from src.config import get_settings
 from src.interfaces.http.dependencies import UserServiceDep
 from src.interfaces.http.schemas import LoginRequest, TokenResponse
-
-from shared_core.security import create_access_token
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 settings = get_settings()

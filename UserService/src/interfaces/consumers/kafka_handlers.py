@@ -3,11 +3,11 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+from shared_infra.kafka_consumer_base import BaseKafkaConsumer
 from src.config import get_settings
 from src.interfaces.consumers.event_registry import UserServiceEventRegistry
 
 from contracts.topics import SubscriptionServiceTopics
-from shared_infra.kafka_consumer_base import BaseKafkaConsumer
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

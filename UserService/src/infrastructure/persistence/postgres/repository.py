@@ -22,9 +22,7 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
         return user
 
     async def get_by_email(self, email: str) -> User | None:
-        result = await self._session.execute(
-            select(UserORM).where(UserORM.email == email)
-        )
+        result = await self._session.execute(select(UserORM).where(UserORM.email == email))
         orm = result.scalar_one_or_none()
         if orm is None:
             return None
@@ -34,18 +32,14 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
         existing = self.seen.get(user_id)
         if existing is not None:
             return existing
-        result = await self._session.execute(
-            select(UserORM).where(UserORM.id == user_id)
-        )
+        result = await self._session.execute(select(UserORM).where(UserORM.id == user_id))
         orm = result.scalar_one_or_none()
         if orm is None:
             return None
         return self._track(self._to_domain(orm))
 
     async def exists_by_email(self, email: str) -> bool:
-        result = await self._session.execute(
-            select(UserORM.id).where(UserORM.email == email)
-        )
+        result = await self._session.execute(select(UserORM.id).where(UserORM.email == email))
         return result.scalar_one_or_none() is not None
 
     async def add(self, user: User) -> None:
