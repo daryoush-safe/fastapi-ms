@@ -7,10 +7,9 @@ authors = [
     { name = "Alos", email = "daryoosh.safe@gmail.com" }
 ]
 requires-python = ">=3.14"
-dependencies = []
-
-[project.scripts]
-shared_core = "shared_core:main"
+dependencies = [
+    "pyjwt>=2.10.0",
+]
 
 [build-system]
 requires = ["uv_build>=0.11.11,<0.12.0"]

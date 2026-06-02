@@ -2,6 +2,12 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
+class AuthenticateUserDTO:
+    email: str
+    password: str
+
+
+@dataclass(frozen=True)
 class GetUserDTO:
     email: str
 

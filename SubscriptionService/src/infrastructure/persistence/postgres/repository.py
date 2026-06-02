@@ -15,18 +15,26 @@ from src.infrastructure.persistence.postgres.models.subscription_orm import (
 class SqlAlchemySubscriptionRepository(AbstractSubscriptionRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
-        self.seen: set[Subscription] = set()
+        self.seen: dict[UUID, Subscription] = {}
+
+    def _track(self, subscription: Subscription) -> Subscription:
+        existing = self.seen.get(subscription.id)
+        if existing is not None:
+            return existing
+        self.seen[subscription.id] = subscription
+        return subscription
 
     async def get_by_id(self, subscription_id: UUID) -> Subscription | None:
+        existing = self.seen.get(subscription_id)
+        if existing is not None:
+            return existing
         result = await self._session.execute(
             select(SubscriptionORM).where(SubscriptionORM.id == subscription_id)
         )
         orm = result.scalar_one_or_none()
         if orm is None:
             return None
-        sub = self._to_domain(orm)
-        self.seen.add(sub)
-        return sub
+        return self._track(self._to_domain(orm))
 
     async def get_by_email(self, email: str) -> Subscription | None:
         result = await self._session.execute(
@@ -35,16 +43,14 @@ class SqlAlchemySubscriptionRepository(AbstractSubscriptionRepository):
         orm = result.scalar_one_or_none()
         if orm is None:
             return None
-        sub = self._to_domain(orm)
-        self.seen.add(sub)
-        return sub
+        return self._track(self._to_domain(orm))
 
     async def add(self, subscription: Subscription) -> None:
-        self.seen.add(subscription)
+        self.seen[subscription.id] = subscription
         self._session.add(self._to_orm(subscription))
 
     async def update(self, subscription: Subscription) -> None:
-        self.seen.add(subscription)
+        self.seen[subscription.id] = subscription
         orm = await self._session.get(SubscriptionORM, subscription.id)
         if orm is None:
             raise SubscriptionNotFoundError(subscription.id)

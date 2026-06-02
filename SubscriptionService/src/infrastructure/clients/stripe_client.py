@@ -25,6 +25,7 @@ class StripeClient(AbstractPaymentClient):
                 line_items=[{"price": price_id, "quantity": 1}],
                 mode="subscription",
                 billing_address_collection="required",
+                subscription_data={"metadata": {"email": email}},
             )
         except stripe.StripeError:
             raise PaymentProviderError

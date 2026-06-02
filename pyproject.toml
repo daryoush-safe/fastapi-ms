@@ -20,12 +20,12 @@ members = [
 
 [tool.pyright]
 include = ["UserService/src", "SubscriptionService/src", "libs", "contracts"]
-extraPaths = ["libs", "contracts"]
+extraPaths = ["libs/shared_core/src", "libs/shared_infra/src", "contracts"]
 venvPath = "."
 venv = ".venv"
 executionEnvironments = [
-  { root = "UserService", extraPaths = ["libs", "."] },
-  { root = "SubscriptionService", extraPaths = ["libs", "."] }
+  { root = "UserService", extraPaths = ["libs/shared_core/src", "libs/shared_infra/src", "."] },
+  { root = "SubscriptionService", extraPaths = ["libs/shared_core/src", "libs/shared_infra/src", "."] }
 ]
 
 [dependency-groups]

@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request, status
 from src.application.dto import (
     CreateCheckoutSessionDTO,
     CreateSubscriptionDTO,
@@ -9,6 +9,7 @@ from src.application.dto import (
 )
 from src.domain.exceptions import PaymentProviderError, SecurityValidationError
 from src.domain.models import Subscription
+from src.interfaces.http.auth import CurrentUser, CurrentUserDep
 from src.interfaces.http.dependencies import SubscriptionServiceDep
 from src.interfaces.http.schemas import (
     CreateCheckoutSessionRequest,
@@ -29,14 +30,24 @@ def _to_subscription_response(subscription: Subscription) -> SubscriptionRespons
     )
 
 
+def _ensure_owner(current: CurrentUser, subscription_email: str) -> None:
+    if current.email != subscription_email:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not permitted to access another user's subscription",
+        )
+
+
 @router.get("", response_model=SubscriptionResponse, status_code=200)
 async def get_subscription(
     request: Annotated[GetSubscriptionRequest, Query()],
     subscription_service: SubscriptionServiceDep,
+    current: CurrentUserDep,
 ) -> SubscriptionResponse:
     subscription = await subscription_service.get_subscription(
         GetSubscriptionDTO(id=request.subscription_id)
     )
+    _ensure_owner(current, subscription.email)
     return _to_subscription_response(subscription)
 
 
@@ -44,7 +55,9 @@ async def get_subscription(
 async def create_subscription(
     request: CreateSubscriptionRequest,
     subscription_service: SubscriptionServiceDep,
+    current: CurrentUserDep,
 ) -> SubscriptionResponse:
+    _ensure_owner(current, request.email)
     subscription = await subscription_service.create_subscription(
         CreateSubscriptionDTO(
             subscription_type=request.subscription_type,
@@ -58,7 +71,12 @@ async def create_subscription(
 async def get_checkout_session(
     request: CreateCheckoutSessionRequest,
     subscription_service: SubscriptionServiceDep,
+    current: CurrentUserDep,
 ) -> dict[str, str]:
+    subscription = await subscription_service.get_subscription(
+        GetSubscriptionDTO(id=request.subscription_id)
+    )
+    _ensure_owner(current, subscription.email)
     result = await subscription_service.create_checkout_session(
         CreateCheckoutSessionDTO(
             subscription_id=request.subscription_id,

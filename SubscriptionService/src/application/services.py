@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 from src.application.dto import (
     ActivateSubscriptionByEmailDTO,
     CreateCheckoutSessionDTO,
@@ -22,28 +24,36 @@ from src.domain.ports.unit_of_work import AbstractUnitOfWork
 
 
 class SubscriptionService:
-    def __init__(self, uow: AbstractUnitOfWork, payment: AbstractPaymentClient) -> None:
-        self._uow = uow
+    def __init__(
+        self,
+        uow_factory: Callable[[], AbstractUnitOfWork],
+        payment: AbstractPaymentClient,
+    ) -> None:
+        self._uow_factory = uow_factory
         self._payment = payment
 
     async def get_subscription(self, dto: GetSubscriptionDTO) -> Subscription:
-        return await GetSubscriptionUseCase(self._uow).execute(dto)
+        return await GetSubscriptionUseCase(self._uow_factory()).execute(dto)
 
     async def create_subscription(self, dto: CreateSubscriptionDTO) -> Subscription:
-        return await CreateSubscriptionUseCase(self._uow).execute(dto)
+        return await CreateSubscriptionUseCase(self._uow_factory()).execute(dto)
 
     async def create_checkout_session(
         self, dto: CreateCheckoutSessionDTO
     ) -> CheckoutSession:
-        return await CreateCheckoutSessionUseCase(self._uow, self._payment).execute(dto)
+        return await CreateCheckoutSessionUseCase(
+            self._uow_factory(), self._payment
+        ).execute(dto)
 
     async def handle_webhook(self, dto: HandleWebhookDTO) -> None:
-        await HandleWebhookUseCase(self._uow, self._payment).execute(dto)
+        await HandleWebhookUseCase(self._uow_factory(), self._payment).execute(dto)
 
     async def activate_subscription_by_email(
         self, dto: ActivateSubscriptionByEmailDTO
     ) -> None:
-        return await ActivateSubscriptionByEmailUseCase(self._uow).execute(dto)
+        return await ActivateSubscriptionByEmailUseCase(self._uow_factory()).execute(
+            dto
+        )
 
     async def update_subscription_email(self, dto: UpdateSubscriptionEmailDTO) -> None:
-        return await UpdateSubscriptionEmailUseCase(self._uow).execute(dto)
+        return await UpdateSubscriptionEmailUseCase(self._uow_factory()).execute(dto)

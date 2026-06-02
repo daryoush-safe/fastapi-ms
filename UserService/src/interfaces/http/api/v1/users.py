@@ -1,12 +1,13 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Query, status
 from src.application.dto import (
     CreateUserDTO,
     DeactivateUserDTO,
     GetUserDTO,
     ResetPasswordDTO,
 )
+from src.interfaces.http.auth import CurrentUser, CurrentUserDep
 from src.interfaces.http.dependencies import UserServiceDep
 from src.interfaces.http.schemas import (
     CreateUserRequest,
@@ -27,11 +28,24 @@ def _to_user_response(user) -> UserResponse:
     )
 
 
+def _ensure_self(current: CurrentUser, target_email: str) -> None:
+    # These operations act on a single account identified by email. A user may only
+    # act on their own account; cross-account access is forbidden. (Admin/role-based
+    # access is out of scope for this pass.)
+    if current.email != target_email:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not permitted to act on another user's account",
+        )
+
+
 @router.get("", response_model=UserResponse, status_code=200)
 async def get_user(
     request: Annotated[GetUserRequest, Query()],
     user_service: UserServiceDep,
+    current: CurrentUserDep,
 ) -> UserResponse:
+    _ensure_self(current, request.email)
     user = await user_service.get_user(GetUserDTO(email=request.email))
     return _to_user_response(user)
 
@@ -41,6 +55,7 @@ async def create_user(
     request: CreateUserRequest,
     user_service: UserServiceDep,
 ) -> UserResponse:
+    # Public registration endpoint — intentionally unauthenticated.
     user = await user_service.create_user(
         CreateUserDTO(
             username=request.username,
@@ -55,7 +70,9 @@ async def create_user(
 async def reset_password(
     request: ResetPasswordRequest,
     user_service: UserServiceDep,
+    current: CurrentUserDep,
 ) -> None:
+    _ensure_self(current, request.email)
     await user_service.reset_password(
         ResetPasswordDTO(email=request.email, new_password=request.password)
     )
@@ -65,5 +82,7 @@ async def reset_password(
 async def deactivate_user(
     request: Annotated[DeactivateUserRequest, Query()],
     user_service: UserServiceDep,
+    current: CurrentUserDep,
 ) -> None:
+    _ensure_self(current, request.email)
     await user_service.deactivate_user(DeactivateUserDTO(email=request.email))

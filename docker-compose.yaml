@@ -8,6 +8,9 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD}
       POSTGRES_DB: fastapi_ms
+      USER_SERVICE_DB_PASSWORD: ${USER_SERVICE_DB_PASSWORD}
+      SUBSCRIPTION_SERVICE_DB_PASSWORD: ${SUBSCRIPTION_SERVICE_DB_PASSWORD}
+      DEBEZIUM_DB_PASSWORD: ${DEBEZIUM_DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./PostgresDB/init:/docker-entrypoint-initdb.d:ro
@@ -18,7 +21,7 @@ services:
         -c config_file=/etc/postgresql/postgresql.conf
         -c hba_file=/etc/postgresql/pg_hba.conf
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     networks:
       - backend
     healthcheck:
@@ -66,8 +69,6 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      # PLAINTEXT  → used inside docker network (service-to-service)
-      # PLAINTEXT_HOST → used from your laptop via localhost
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
@@ -79,7 +80,7 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
     ports:
-      - "9092:9092" # external (host machine)
+      - "127.0.0.1:9092:9092" # host machine (loopback only)
     networks:
       - backend
     healthcheck:
@@ -115,7 +116,7 @@ services:
       CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
       CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
     ports:
-      - "8083:8083"
+      - "127.0.0.1:8083:8083"
     networks:
       - backend
     healthcheck:
@@ -141,7 +142,7 @@ services:
       DB_HOST: postgres
       DB_PORT: "5432"
       DB_USER: debezium_role
-      DB_PASSWORD: debezium_pass
+      DB_PASSWORD: ${DEBEZIUM_DB_PASSWORD}
       DB_NAME: fastapi_ms
     networks:
       - backend
@@ -172,6 +173,10 @@ services:
       DB_ECHO: "false"
       DB_POOL_SIZE: 5
       DB_MAX_OVERFLOW: 10
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      JWT_ACCESS_TOKEN_EXPIRE_MINUTES: ${JWT_ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
     ports:
       - "8000:8000"
     networks:
@@ -205,9 +210,11 @@ services:
       DB_ECHO: "false"
       DB_POOL_SIZE: 5
       DB_MAX_OVERFLOW: 10
-      # STRIPE_API_KEY: ${STRIPE_API_KEY}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
     ports:
       - "8001:8001"
     networks:
@@ -216,6 +223,9 @@ services:
 networks:
   backend:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
 
 volumes:
   postgres_data:

@@ -12,7 +12,14 @@ from src.infrastructure.persistence.postgres.models.user_orm import UserORM
 class SqlAlchemyUserRepository(AbstractUserRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
-        self.seen: set[User] = set()
+        self.seen: dict[UUID, User] = {}
+
+    def _track(self, user: User) -> User:
+        existing = self.seen.get(user.id)
+        if existing is not None:
+            return existing
+        self.seen[user.id] = user
+        return user
 
     async def get_by_email(self, email: str) -> User | None:
         result = await self._session.execute(
@@ -21,20 +28,19 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
         orm = result.scalar_one_or_none()
         if orm is None:
             return None
-        user = self._to_domain(orm)
-        self.seen.add(user)
-        return user
+        return self._track(self._to_domain(orm))
 
     async def get_by_id(self, user_id: UUID) -> User | None:
+        existing = self.seen.get(user_id)
+        if existing is not None:
+            return existing
         result = await self._session.execute(
             select(UserORM).where(UserORM.id == user_id)
         )
         orm = result.scalar_one_or_none()
         if orm is None:
             return None
-        user = self._to_domain(orm)
-        self.seen.add(user)
-        return user
+        return self._track(self._to_domain(orm))
 
     async def exists_by_email(self, email: str) -> bool:
         result = await self._session.execute(
@@ -43,11 +49,11 @@ class SqlAlchemyUserRepository(AbstractUserRepository):
         return result.scalar_one_or_none() is not None
 
     async def add(self, user: User) -> None:
-        self.seen.add(user)
+        self.seen[user.id] = user
         self._session.add(self._to_orm(user))
 
     async def update(self, user: User) -> None:
-        self.seen.add(user)
+        self.seen[user.id] = user
         orm = await self._session.get(UserORM, user.id)
         if orm is None:
             raise ValueError(f"User {user.id} not found")

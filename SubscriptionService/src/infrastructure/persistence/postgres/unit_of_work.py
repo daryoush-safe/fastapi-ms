@@ -37,6 +37,6 @@ class SqlAlchemyUnitOfWork(AbstractUnitOfWork):
         await self._session.rollback()
 
     async def publish_collected_events(self) -> None:
-        for sub in self.subscription.seen:
+        for sub in self.subscription.seen.values():
             for event in sub.pull_events():
                 await self._publisher.publish(event)

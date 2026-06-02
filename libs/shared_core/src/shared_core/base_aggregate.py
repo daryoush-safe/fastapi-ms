@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from libs.shared_core.base_event import DomainEvent
+from shared_core.base_event import DomainEvent
 
 
 @dataclass

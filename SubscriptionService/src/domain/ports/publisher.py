@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from libs.shared_core.base_event import DomainEvent
+from shared_core.base_event import DomainEvent
 
 
 class AbstractEventPublisher(ABC):

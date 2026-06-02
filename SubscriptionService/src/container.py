@@ -1,7 +1,10 @@
+from collections.abc import Callable
+
 from sqlalchemy.ext.asyncio import AsyncEngine, async_sessionmaker, create_async_engine
 from src.application.services import SubscriptionService
 from src.config import Settings, get_settings
 from src.domain.ports.payment import AbstractPaymentClient
+from src.domain.ports.unit_of_work import AbstractUnitOfWork
 from src.infrastructure.clients.stripe_client import StripeClient
 from src.infrastructure.persistence.postgres.unit_of_work import SqlAlchemyUnitOfWork
 
@@ -31,6 +34,14 @@ class Container:
         return cls._session_factory
 
     @classmethod
+    def _uow_factory(cls) -> Callable[[], AbstractUnitOfWork]:
+        # Return a callable that builds a *fresh* UoW (with its own session) per call.
+        # The UoW is stateful (binds a session + repositories in __aenter__), so a
+        # single shared instance would corrupt concurrent requests. Never cache it.
+        session_factory = cls._get_session_factory()
+        return lambda: SqlAlchemyUnitOfWork(session_factory)
+
+    @classmethod
     def payment_client(cls) -> AbstractPaymentClient:
         if cls._payment_client is None:
             cls._payment_client = StripeClient()
@@ -39,9 +50,8 @@ class Container:
     @classmethod
     def subscription_service(cls) -> SubscriptionService:
         if cls._subscription_service is None:
-            uow = SqlAlchemyUnitOfWork(cls._get_session_factory())
             cls._subscription_service = SubscriptionService(
-                uow=uow,
+                uow_factory=cls._uow_factory(),
                 payment=cls.payment_client(),
             )
         return cls._subscription_service

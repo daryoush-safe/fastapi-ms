@@ -7,7 +7,7 @@ from src.config import get_settings
 from src.interfaces.consumers.event_registry import UserServiceEventRegistry
 
 from contracts.topics import SubscriptionServiceTopics
-from libs.shared_infra.kafka_consumer_base import BaseKafkaConsumer
+from shared_infra.kafka_consumer_base import BaseKafkaConsumer
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

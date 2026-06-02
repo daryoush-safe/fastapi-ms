@@ -58,11 +58,14 @@ class HandleWebhookUseCase:
         logger.info("Subscription activated", extra={"email": email})
 
     async def _handle_subscription_deleted(self, data: dict) -> None:
-        email: str | None = (data.get("customer_details") or {}).get("email")
+        metadata = data.get("metadata") or {}
+        email: str | None = metadata.get("email") or (
+            data.get("customer_details") or {}
+        ).get("email")
 
         if email is None:
             logger.warning(
-                "customer.subscription.deleted received with no customer email"
+                "customer.subscription.deleted received with no resolvable email"
             )
             return
 

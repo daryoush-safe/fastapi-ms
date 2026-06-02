@@ -10,7 +10,7 @@ from src.domain.events import (
     SubscriptionDeactivated,
 )
 
-from libs.shared_core.base_aggregate import AggregateRoot
+from shared_core.base_aggregate import AggregateRoot
 
 
 @dataclass(eq=False)

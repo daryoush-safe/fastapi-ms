@@ -5,7 +5,7 @@ from src.domain.models import User
 
 
 class AbstractUserRepository(ABC):
-    seen: set[User]
+    seen: dict[UUID, User]
 
     @abstractmethod
     async def get_by_email(self, email: str) -> User | None: ...

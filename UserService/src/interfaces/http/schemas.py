@@ -2,6 +2,16 @@ from pydantic import BaseModel, EmailStr, Field, model_validator
 from typing_extensions import Self
 
 
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
 class GetUserRequest(BaseModel):
     email: EmailStr
 

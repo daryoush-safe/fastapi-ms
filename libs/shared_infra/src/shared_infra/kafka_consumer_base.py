@@ -132,19 +132,24 @@ class BaseKafkaConsumer(ABC):
                 msg.partition,
                 msg.offset,
             )
-            await self._send_to_dlq(msg)
+            try:
+                await self._send_to_dlq(msg)
+            except Exception:
+                logger.critical(
+                    "DLQ_SEND_FAILED | offset NOT committed, will be redelivered | "
+                    "topic=%s partition=%d offset=%d",
+                    msg.topic,
+                    msg.partition,
+                    msg.offset,
+                    exc_info=True,
+                )
+                raise
             await consumer.commit()
 
     async def _send_to_dlq(self, msg: Any) -> None:
+        """Park a poison message in `<topic>.dlq`. Raises if the write fails."""
         if self._producer is None:
-            logger.error(
-                "DLQ_SEND_FAILED | producer not initialised — message lost | "
-                "topic=%s partition=%d offset=%d",
-                msg.topic,
-                msg.partition,
-                msg.offset,
-            )
-            return
+            raise RuntimeError("DLQ producer not initialised — cannot park message")
 
         dlq_topic = f"{msg.topic}{_DLQ_SUFFIX}"
         dlq_record = {
@@ -157,29 +162,18 @@ class BaseKafkaConsumer(ABC):
             "original_value": msg.value,
         }
 
-        try:
-            await asyncio.wait_for(
-                self._producer.send_and_wait(
-                    dlq_topic,
-                    value=dlq_record,
-                    key=msg.key,
-                ),
-                timeout=_DLQ_SEND_TIMEOUT_S,
-            )
-            logger.warning(
-                "DLQ_SEND_OK | topic=%s partition=%d offset=%d → %s",
-                msg.topic,
-                msg.partition,
-                msg.offset,
+        await asyncio.wait_for(
+            self._producer.send_and_wait(
                 dlq_topic,
-            )
-        except Exception:
-            logger.error(
-                "DLQ_SEND_FAILED | could not write to %s — message lost | "
-                "topic=%s partition=%d offset=%d",
-                dlq_topic,
-                msg.topic,
-                msg.partition,
-                msg.offset,
-                exc_info=True,
-            )
+                value=dlq_record,
+                key=msg.key,
+            ),
+            timeout=_DLQ_SEND_TIMEOUT_S,
+        )
+        logger.warning(
+            "DLQ_SEND_OK | topic=%s partition=%d offset=%d → %s",
+            msg.topic,
+            msg.partition,
+            msg.offset,
+            dlq_topic,
+        )

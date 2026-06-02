@@ -7,7 +7,7 @@ from src.domain.ports.publisher import AbstractEventPublisher
 from src.infrastructure.persistence.postgres.models.outbox_orm import OutboxORM
 
 from contracts.topics import SubscriptionServiceTopics
-from libs.shared_core.base_event import DomainEvent
+from shared_core.base_event import DomainEvent
 
 
 class OutboxPublisher(AbstractEventPublisher):

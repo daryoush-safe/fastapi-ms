@@ -8,6 +8,7 @@ from src.config import get_settings
 from src.container import Container
 from src.interfaces.consumers.event_registry import UserServiceEventRegistry
 from src.interfaces.consumers.kafka_handlers import UserServiceKafkaConsumer
+from src.interfaces.http.api.v1.auth import router as auth_router
 from src.interfaces.http.api.v1.users import router as users_router
 from src.interfaces.http.exception_handlers import register_exception_handlers
 
@@ -34,11 +35,12 @@ def create_app() -> FastAPI:
     )
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=settings.cors_origins_list,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.include_router(auth_router, prefix="/api/v1")
     app.include_router(users_router, prefix="/api/v1")
     register_exception_handlers(app)
     return app
