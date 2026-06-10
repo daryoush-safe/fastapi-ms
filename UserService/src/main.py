@@ -4,6 +4,7 @@ from typing import AsyncIterator
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from shared_infra.middleware import RateLimitMiddleware
 from src.config import get_settings
 from src.container import Container
 from src.interfaces.consumers.event_registry import UserServiceEventRegistry
@@ -33,6 +34,7 @@ def create_app() -> FastAPI:
         debug=settings.debug,
         lifespan=lifespan,
     )
+    app.add_middleware(RateLimitMiddleware, requests_per_minute=60)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins_list,

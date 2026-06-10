@@ -14,9 +14,6 @@ async def login(
     request: LoginRequest,
     user_service: UserServiceDep,
 ) -> TokenResponse:
-    # Authenticate against the user store, then mint a token in the interface layer
-    # (the application/domain layers stay free of JWT concerns). Invalid credentials
-    # / inactive user raise domain errors mapped to 401 / 403 by the exception handlers.
     user = await user_service.authenticate(
         AuthenticateUserDTO(email=request.email, password=request.password)
     )
