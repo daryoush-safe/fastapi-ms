@@ -1,5 +1,6 @@
 \connect fastapi_ms
 
 CREATE SCHEMA IF NOT EXISTS auth;
+CREATE SCHEMA IF NOT EXISTS dbservice;
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
