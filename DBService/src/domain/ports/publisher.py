@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+
 from shared_core.base_event import DomainEvent
 
 
