@@ -89,18 +89,17 @@ jobs:
         include:
           - service: UserService
             dockerfile: UserService/Dockerfile
-            image: userservice
           - service: SubscriptionService
             dockerfile: SubscriptionService/Dockerfile
-            image: subscriptionservice
-          - service: DBService
-            dockerfile: DBService/Dockerfile
-            image: dbservice
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Lowercase service name
+        id: meta
+        run: echo "tag=$(echo '${{ matrix.service }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
       - name: Build image (no push)
         uses: docker/build-push-action@v6
@@ -113,4 +112,4 @@ jobs:
             UV_INDEX_URL=https://pypi.org/simple
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
-          tags: ${{ matrix.image }}:ci
+          tags: ${{ steps.meta.outputs.tag }}:ci
