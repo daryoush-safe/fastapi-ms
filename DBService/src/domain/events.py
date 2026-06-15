@@ -1,6 +1,7 @@
-from shared_core.base_event import DomainEvent
 import uuid
 from dataclasses import dataclass, field
+
+from shared_core.base_event import DomainEvent
 
 
 @dataclass(frozen=True)
