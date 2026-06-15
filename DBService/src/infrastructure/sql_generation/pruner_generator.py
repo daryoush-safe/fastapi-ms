@@ -14,5 +14,5 @@ class PrunerSQLGenerator(ISQLGenerator):
             json={"schema": schema, "prompt": prompt},
         )
         response.raise_for_status()
-        
+
         return response.json()["sql"]

@@ -20,4 +20,6 @@ async def register_connection(
             dsn=request.dsn,
         )
     )
-    return ConnectionResponse(id=conn.id, name=conn.name, engine=conn.engine, is_active=conn.is_active)
+    return ConnectionResponse(
+        id=conn.id, name=conn.name, engine=conn.engine, is_active=conn.is_active
+    )

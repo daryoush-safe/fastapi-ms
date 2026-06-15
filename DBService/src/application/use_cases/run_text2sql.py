@@ -9,9 +9,10 @@ from DBService.src.domain.ports.publisher import IEventPublisher
 from DBService.src.domain.exceptions import (
     ConnectionNotFound,
     SchemaIntrospectionError,
-    SQLGenerationError,     
-    QueryExecutionError
+    SQLGenerationError,
+    QueryExecutionError,
 )
+
 
 class RunText2SQL:
     def __init__(
@@ -45,13 +46,17 @@ class RunText2SQL:
                 raise SQLGenerationError(str(e)) from e
 
             try:
-                result = await self._query_executor.execute(conn.dsn, sql, cmd.connection_id, cmd.prompt)
+                result = await self._query_executor.execute(
+                    conn.dsn, sql, cmd.connection_id, cmd.prompt
+                )
             except Exception as e:
                 raise QueryExecutionError(str(e)) from e
 
-            await self._publisher.publish(QueryExecuted(
-                connection_id=cmd.connection_id,
-                prompt=cmd.prompt,
-                generated_sql=sql,
-            ))
+            await self._publisher.publish(
+                QueryExecuted(
+                    connection_id=cmd.connection_id,
+                    prompt=cmd.prompt,
+                    generated_sql=sql,
+                )
+            )
             return QueryResultDTO.from_domain(result)

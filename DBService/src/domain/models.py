@@ -8,12 +8,13 @@ from datetime import datetime, timezone
 @dataclass
 class DatabaseConnection:
     id: uuid.UUID
-    owner_id: uuid.UUID          # links to UserService user
+    owner_id: uuid.UUID  # links to UserService user
     name: str
-    engine: str             # "postgres" | "mysql" | "sqlite"
-    dsn: str                # encrypted at rest
+    engine: str  # "postgres" | "mysql" | "sqlite"
+    dsn: str  # encrypted at rest
     schema_cache: dict | None
     is_active: bool
+
 
 @dataclass
 class QueryResult:
@@ -22,4 +23,4 @@ class QueryResult:
     generated_sql: str
     columns: list[str]
     rows: list[list]
-    executed_at: datetime 
+    executed_at: datetime

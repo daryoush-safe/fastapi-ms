@@ -9,7 +9,9 @@ from DBService.src.domain.ports.query_executor import IQueryExecutor
 
 
 class SqlAlchemyQueryExecutor(IQueryExecutor):
-    async def execute(self, dsn: str, sql: str, connection_id: uuid.UUID, prompt: str) -> QueryResult:
+    async def execute(
+        self, dsn: str, sql: str, connection_id: uuid.UUID, prompt: str
+    ) -> QueryResult:
         engine = create_async_engine(dsn)
         try:
             async with engine.connect() as conn:

@@ -1,11 +1,18 @@
 import httpx
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from DBService.src.application.use_cases.register_connection import RegisterConnectionUseCase
 from DBService.src.application.use_cases.run_text2sql import RunText2SQL
 from DBService.src.config import Settings, get_settings
 from DBService.src.domain.ports.unit_of_work import IUnitOfWork
-from DBService.src.infrastructure.db_introspection.sqlalchemy_schema_reader import SqlAlchemySchemaReader
+from DBService.src.infrastructure.db_introspection.sqlalchemy_schema_reader import (
+    SqlAlchemySchemaReader,
+)
 from DBService.src.infrastructure.messaging.outbox_publisher import OutboxPublisher
 from DBService.src.infrastructure.persistence.postgres.unit_of_work import SqlAlchemyUnitOfWork
 from DBService.src.infrastructure.query_execution.sqlalchemy_executor import SqlAlchemyQueryExecutor
