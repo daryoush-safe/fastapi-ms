@@ -31,7 +31,9 @@ async def test_full_pipeline(target_sqlite_dsn):
     mock_uow.__aexit__.return_value = None
     mock_uow.connections.get.return_value = fake_conn
 
+    fake_request = httpx.Request("POST", "http://pruner/generate")
     fake_response = httpx.Response(200, json={"sql": "SELECT 1"})
+    fake_response.request = fake_request
     with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=fake_response):
         async with httpx.AsyncClient() as client:
             use_case = RunText2SQL(
