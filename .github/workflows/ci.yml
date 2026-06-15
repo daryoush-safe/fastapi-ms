@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: [UserService, SubscriptionService]
+        service: [UserService, SubscriptionService, DBService]
     services:
       postgres:
         image: postgres:16-alpine
@@ -89,8 +89,13 @@ jobs:
         include:
           - service: UserService
             dockerfile: UserService/Dockerfile
+            image: userservice
           - service: SubscriptionService
             dockerfile: SubscriptionService/Dockerfile
+            image: subscriptionservice
+          - service: DBService
+            dockerfile: DBService/Dockerfile
+            image: dbservice
     steps:
       - uses: actions/checkout@v4
 
@@ -108,4 +113,4 @@ jobs:
             UV_INDEX_URL=https://pypi.org/simple
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
-          tags: ${{ matrix.service }}:ci
+          tags: ${{ matrix.image }}:ci
