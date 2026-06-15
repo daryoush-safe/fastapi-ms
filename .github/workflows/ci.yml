@@ -91,6 +91,8 @@ jobs:
             dockerfile: UserService/Dockerfile
           - service: SubscriptionService
             dockerfile: SubscriptionService/Dockerfile
+          - service: DBService
+            dockerfile: DBService/Dockerfile
     steps:
       - uses: actions/checkout@v4
 
