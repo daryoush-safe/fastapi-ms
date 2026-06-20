@@ -31,6 +31,9 @@ jobs:
           - service: SubscriptionService
             dockerfile: SubscriptionService/Dockerfile
             image: subscription-service
+          - service: DBService
+            dockerfile: DBService/Dockerfile
+            image: db-service
     steps:
       - uses: actions/checkout@v4
 

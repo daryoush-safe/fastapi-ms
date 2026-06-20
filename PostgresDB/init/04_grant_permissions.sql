@@ -22,3 +22,11 @@ ALTER DEFAULT PRIVILEGES FOR ROLE subscription_service_role IN SCHEMA auth
 
 -- ─── Debezium: allow creating publications ────────────────────────────────────
 GRANT CREATE ON DATABASE fastapi_ms TO debezium_role;
+
+-- ─── DB Service ───────────────────────────────────────────────────────────────
+GRANT CREATE ON DATABASE fastapi_ms TO db_service_role;
+GRANT USAGE, CREATE ON SCHEMA dbservice TO db_service_role;
+GRANT USAGE ON SCHEMA dbservice TO debezium_role;
+
+ALTER DEFAULT PRIVILEGES FOR ROLE db_service_role IN SCHEMA dbservice
+    GRANT SELECT ON TABLES TO debezium_role;

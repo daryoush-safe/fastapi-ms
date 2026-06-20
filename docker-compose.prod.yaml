@@ -19,3 +19,7 @@ services:
   subscription-service:
     image: ghcr.io/${IMAGE_OWNER}/subscription-service:${IMAGE_TAG}
     pull_policy: always
+
+  db-service:
+    image: ghcr.io/${IMAGE_OWNER}/db-service:${IMAGE_TAG}
+    pull_policy: always

@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: [UserService, SubscriptionService]
+        service: [UserService, SubscriptionService, DBService]
     services:
       postgres:
         image: postgres:16-alpine
@@ -91,11 +91,17 @@ jobs:
             dockerfile: UserService/Dockerfile
           - service: SubscriptionService
             dockerfile: SubscriptionService/Dockerfile
+          - service: DBService
+            dockerfile: DBService/Dockerfile
     steps:
       - uses: actions/checkout@v4
 
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Lowercase service name
+        id: meta
+        run: echo "tag=$(echo '${{ matrix.service }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
       - name: Build image (no push)
         uses: docker/build-push-action@v6
@@ -108,4 +114,4 @@ jobs:
             UV_INDEX_URL=https://pypi.org/simple
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
-          tags: ${{ matrix.service }}:ci
+          tags: ${{ steps.meta.outputs.tag }}:ci
