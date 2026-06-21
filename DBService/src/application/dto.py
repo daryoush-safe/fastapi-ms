@@ -7,6 +7,7 @@ from DBService.src.domain.models import QueryResult
 @dataclass
 class RunText2SQLCommand:
     connection_id: uuid.UUID
+    owner_id: uuid.UUID
     prompt: str
 
 

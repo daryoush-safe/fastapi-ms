@@ -1,6 +1,7 @@
 from DBService.src.application.dto import QueryResultDTO, RunText2SQLCommand
 from DBService.src.domain.events import QueryExecuted
 from DBService.src.domain.exceptions import (
+    ConnectionAccessDenied,
     ConnectionNotFound,
     QueryExecutionError,
     SchemaIntrospectionError,
@@ -33,6 +34,8 @@ class RunText2SQL:
             conn = await uow.connections.get(cmd.connection_id)
             if conn is None:
                 raise ConnectionNotFound(cmd.connection_id)
+            if conn.owner_id != cmd.owner_id:
+                raise ConnectionAccessDenied(cmd.connection_id)
 
             try:
                 schema = await self._schema_reader.read_schema(conn.dsn)

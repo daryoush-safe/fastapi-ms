@@ -5,7 +5,6 @@ from pydantic import BaseModel
 
 
 class RegisterConnectionRequest(BaseModel):
-    owner_id: uuid.UUID
     name: str
     engine: Literal["postgres", "mysql", "sqlite"]
     dsn: str

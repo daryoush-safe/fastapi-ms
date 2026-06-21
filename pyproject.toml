@@ -15,7 +15,6 @@ members = [
     "contracts",
     "UserService",
     "SubscriptionService",
-    "MLService",
     "DBService",
 ]
 
