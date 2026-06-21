@@ -1,4 +1,0 @@
-tracking_uri: "http://localhost:5000"
-experiment_name: "AnomalyDetection"
-registry_model_name: "anomaly-detection"
-production_model_name: "anomaly-detection-prod"

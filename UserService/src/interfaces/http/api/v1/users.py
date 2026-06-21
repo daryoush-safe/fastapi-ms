@@ -7,8 +7,7 @@ from src.application.dto import (
     GetUserDTO,
     ResetPasswordDTO,
 )
-from src.interfaces.http.auth import CurrentUser, CurrentUserDep
-from src.interfaces.http.dependencies import UserServiceDep
+from src.interfaces.http.dependencies import CurrentUser, CurrentUserDep, UserServiceDep
 from src.interfaces.http.schemas import (
     CreateUserRequest,
     DeactivateUserRequest,
@@ -29,9 +28,6 @@ def _to_user_response(user) -> UserResponse:
 
 
 def _ensure_self(current: CurrentUser, target_email: str) -> None:
-    # These operations act on a single account identified by email. A user may only
-    # act on their own account; cross-account access is forbidden. (Admin/role-based
-    # access is out of scope for this pass.)
     if current.email != target_email:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -55,7 +51,6 @@ async def create_user(
     request: CreateUserRequest,
     user_service: UserServiceDep,
 ) -> UserResponse:
-    # Public registration endpoint — intentionally unauthenticated.
     user = await user_service.create_user(
         CreateUserDTO(
             username=request.username,

@@ -16,9 +16,10 @@ from DBService.src.infrastructure.sql_generation.pruner_generator import PrunerS
 
 async def test_full_pipeline(target_sqlite_dsn):
     conn_id = uuid.uuid4()
+    owner_id = uuid.uuid4()
     fake_conn = DatabaseConnection(
         id=conn_id,
-        owner_id=uuid.uuid4(),
+        owner_id=owner_id,
         name="test-db",
         engine="sqlite",
         dsn=target_sqlite_dsn,
@@ -43,7 +44,11 @@ async def test_full_pipeline(target_sqlite_dsn):
                 query_executor=SqlAlchemyQueryExecutor(),
                 publisher=AsyncMock(),
             )
-            cmd = RunText2SQLCommand(connection_id=conn_id, prompt="What is the capital of France?")
+            cmd = RunText2SQLCommand(
+                connection_id=conn_id,
+                owner_id=owner_id,
+                prompt="What is the capital of France?",
+            )
             result = await use_case.execute(cmd)
 
     assert result.generated_sql == "SELECT 1"

@@ -1,7 +1,9 @@
+import uuid
+
 from fastapi import APIRouter
 
 from DBService.src.application.dto import RegisterConnectionCommand
-from DBService.src.interfaces.http.dependencies import RegisterConnectionDep
+from DBService.src.interfaces.http.dependencies import CurrentUserDep, RegisterConnectionDep
 from DBService.src.interfaces.http.schemas import ConnectionResponse, RegisterConnectionRequest
 
 router = APIRouter(prefix="/connections", tags=["connections"])
@@ -11,10 +13,11 @@ router = APIRouter(prefix="/connections", tags=["connections"])
 async def register_connection(
     request: RegisterConnectionRequest,
     use_case: RegisterConnectionDep,
+    current: CurrentUserDep,
 ) -> ConnectionResponse:
     conn = await use_case.execute(
         RegisterConnectionCommand(
-            owner_id=request.owner_id,
+            owner_id=uuid.UUID(current.user_id),
             name=request.name,
             engine=request.engine,
             dsn=request.dsn,

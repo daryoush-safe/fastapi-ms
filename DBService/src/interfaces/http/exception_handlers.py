@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from DBService.src.domain.exceptions import (
+    ConnectionAccessDenied,
     ConnectionNotFound,
     DomainError,
     QueryExecutionError,
@@ -21,6 +22,10 @@ def _body(message: str) -> dict:
 
 def connection_not_found_handler(request: Request, exc: Exception) -> JSONResponse:
     return JSONResponse(status_code=404, content=_body(str(exc)))
+
+
+def connection_access_denied_handler(request: Request, exc: Exception) -> JSONResponse:
+    return JSONResponse(status_code=403, content=_body(str(exc)))
 
 
 def unsupported_engine_handler(request: Request, exc: Exception) -> JSONResponse:
@@ -46,6 +51,7 @@ def unhandled_domain_handler(request: Request, exc: Exception) -> JSONResponse:
 
 def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(ConnectionNotFound, connection_not_found_handler)
+    app.add_exception_handler(ConnectionAccessDenied, connection_access_denied_handler)
     app.add_exception_handler(UnsupportedEngineError, unsupported_engine_handler)
     app.add_exception_handler(SchemaIntrospectionError, schema_introspection_handler)
     app.add_exception_handler(SQLGenerationError, sql_generation_handler)

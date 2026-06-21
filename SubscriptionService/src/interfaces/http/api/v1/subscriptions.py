@@ -9,8 +9,7 @@ from src.application.dto import (
 )
 from src.domain.exceptions import PaymentProviderError, SecurityValidationError
 from src.domain.models import Subscription
-from src.interfaces.http.auth import CurrentUser, CurrentUserDep
-from src.interfaces.http.dependencies import SubscriptionServiceDep
+from src.interfaces.http.dependencies import CurrentUser, CurrentUserDep, SubscriptionServiceDep
 from src.interfaces.http.schemas import (
     CreateCheckoutSessionRequest,
     CreateSubscriptionRequest,

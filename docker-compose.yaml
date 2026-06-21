@@ -207,6 +207,8 @@ services:
       # Set to the URL of your Pruner model service once it is running
       PRUNER_BASE_URL: ${PRUNER_BASE_URL:-http://pruner:8004}
       PRUNER_TIMEOUT: "30.0"
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
     ports:
       - "8003:8003"

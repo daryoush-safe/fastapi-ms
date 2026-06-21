@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     pruner_base_url: str = Field(..., alias="PRUNER_BASE_URL")
     pruner_timeout: float = Field(30.0, alias="PRUNER_TIMEOUT")
 
+    # Auth (JWT)
+    jwt_secret: str = Field(..., alias="JWT_SECRET")
+    jwt_algorithm: str = Field("HS256", alias="JWT_ALGORITHM")
+
     # App
     app_name: str = Field("DBService", alias="APP_NAME")
     app_host: str = Field("0.0.0.0", alias="APP_HOST")

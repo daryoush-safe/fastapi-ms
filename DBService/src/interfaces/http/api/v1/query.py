@@ -1,7 +1,9 @@
+import uuid
+
 from fastapi import APIRouter
 
 from DBService.src.application.dto import RunText2SQLCommand
-from DBService.src.interfaces.http.dependencies import RunText2SQLDep
+from DBService.src.interfaces.http.dependencies import CurrentUserDep, RunText2SQLDep
 from DBService.src.interfaces.http.schemas import QueryRequest, QueryResponse
 
 router = APIRouter(prefix="/query", tags=["query"])
@@ -11,10 +13,12 @@ router = APIRouter(prefix="/query", tags=["query"])
 async def run_query(
     request: QueryRequest,
     use_case: RunText2SQLDep,
+    current: CurrentUserDep,
 ) -> QueryResponse:
     result = await use_case.execute(
         RunText2SQLCommand(
             connection_id=request.connection_id,
+            owner_id=uuid.UUID(current.user_id),
             prompt=request.prompt,
         )
     )
