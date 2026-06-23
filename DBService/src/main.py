@@ -4,6 +4,8 @@ from typing import AsyncIterator
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from shared_infra.observability import setup_observability
+from sqlalchemy import text
 
 from DBService.src.config import get_settings
 from DBService.src.container import Container
@@ -19,6 +21,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     await Container.startup()
     yield
     await Container.shutdown()
+
+
+async def _check_db() -> bool:
+    async with Container.engine().connect() as conn:
+        await conn.execute(text("SELECT 1"))
+    return True
 
 
 def create_app() -> FastAPI:
@@ -37,6 +45,14 @@ def create_app() -> FastAPI:
     app.include_router(connections_router, prefix="/api/v1")
     app.include_router(query_router, prefix="/api/v1")
     register_exception_handlers(app)
+
+    setup_observability(
+        app,
+        service_name=settings.app_name,
+        readiness_checks={"database": _check_db},
+        log_level="DEBUG" if settings.debug else "INFO",
+        json_logs=not settings.debug,
+    )
     return app
 
 

@@ -42,6 +42,10 @@ class BaseKafkaConsumer(ABC):
             raise RuntimeError("Consumer not started — call await start() first")
         return self._consumer
 
+    @property
+    def is_running(self) -> bool:
+        return self._consumer is not None and any(not t.done() for t in self._tasks)
+
     @abstractmethod
     async def handle(self, event_type: str, payload: dict[str, Any]) -> None: ...
 

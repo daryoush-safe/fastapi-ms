@@ -30,6 +30,12 @@ class Container:
         return cls._session_factory
 
     @classmethod
+    def engine(cls) -> AsyncEngine:
+        cls._get_session_factory()
+        assert cls._engine is not None
+        return cls._engine
+
+    @classmethod
     def _uow_factory(cls) -> Callable[[], AbstractUnitOfWork]:
         session_factory = cls._get_session_factory()
         return lambda: SqlAlchemyUnitOfWork(session_factory)

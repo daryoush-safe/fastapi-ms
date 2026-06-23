@@ -42,6 +42,12 @@ class Container:
         return cls._session_factory
 
     @classmethod
+    def engine(cls) -> AsyncEngine:
+        cls._get_session_factory()
+        assert cls._engine is not None
+        return cls._engine
+
+    @classmethod
     def _get_http_client(cls) -> httpx.AsyncClient:
         if cls._http_client is None:
             raise RuntimeError("HTTP client not initialised — call Container.startup() first")

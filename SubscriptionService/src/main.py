@@ -5,6 +5,8 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from shared_infra.middleware import RateLimitMiddleware
+from shared_infra.observability import setup_observability
+from sqlalchemy import text
 from src.config import get_settings
 from src.container import Container
 from src.interfaces.consumers.event_registry import SubscriptionServiceEventRegistry
@@ -29,6 +31,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     await _consumer.stop()
 
 
+async def _check_db() -> bool:
+    async with Container.engine().connect() as conn:
+        await conn.execute(text("SELECT 1"))
+    return True
+
+
+async def _check_kafka() -> bool:
+    return _consumer is not None and _consumer.is_running
+
+
 def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.app_name,
@@ -45,6 +57,14 @@ def create_app() -> FastAPI:
     )
     app.include_router(subscription_router, prefix="/api/v1")
     register_exception_handlers(app)
+
+    setup_observability(
+        app,
+        service_name=settings.app_name,
+        readiness_checks={"database": _check_db, "kafka": _check_kafka},
+        log_level="DEBUG" if settings.debug else "INFO",
+        json_logs=not settings.debug,
+    )
     return app
 
 
