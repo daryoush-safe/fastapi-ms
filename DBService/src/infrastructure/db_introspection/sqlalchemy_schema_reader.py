@@ -1,7 +1,7 @@
 from sqlalchemy import inspect
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from DBService.src.domain.ports.schema_reader import ISchemaReader
+from src.domain.ports.schema_reader import ISchemaReader
 
 
 class SqlAlchemySchemaReader(ISchemaReader):

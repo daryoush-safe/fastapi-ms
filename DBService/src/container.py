@@ -6,17 +6,17 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from DBService.src.application.use_cases.register_connection import RegisterConnectionUseCase
-from DBService.src.application.use_cases.run_text2sql import RunText2SQL
-from DBService.src.config import Settings, get_settings
-from DBService.src.domain.ports.unit_of_work import IUnitOfWork
-from DBService.src.infrastructure.db_introspection.sqlalchemy_schema_reader import (
+from src.application.use_cases.register_connection import RegisterConnectionUseCase
+from src.application.use_cases.run_text2sql import RunText2SQL
+from src.config import Settings, get_settings
+from src.domain.ports.unit_of_work import IUnitOfWork
+from src.infrastructure.db_introspection.sqlalchemy_schema_reader import (
     SqlAlchemySchemaReader,
 )
-from DBService.src.infrastructure.messaging.outbox_publisher import OutboxPublisher
-from DBService.src.infrastructure.persistence.postgres.unit_of_work import SqlAlchemyUnitOfWork
-from DBService.src.infrastructure.query_execution.sqlalchemy_executor import SqlAlchemyQueryExecutor
-from DBService.src.infrastructure.sql_generation.pruner_generator import PrunerSQLGenerator
+from src.infrastructure.messaging.outbox_publisher import OutboxPublisher
+from src.infrastructure.persistence.postgres.unit_of_work import SqlAlchemyUnitOfWork
+from src.infrastructure.query_execution.sqlalchemy_executor import SqlAlchemyQueryExecutor
+from src.infrastructure.sql_generation.pruner_generator import PrunerSQLGenerator
 
 
 class Container:

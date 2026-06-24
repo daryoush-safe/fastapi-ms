@@ -5,7 +5,7 @@ from sqlalchemy import JSON, Boolean, DateTime, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from DBService.src.infrastructure.persistence.postgres.models.base_orm import Base
+from src.infrastructure.persistence.postgres.models.base_orm import Base
 
 
 class ConnectionORM(Base):

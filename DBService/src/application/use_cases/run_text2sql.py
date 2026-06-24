@@ -1,17 +1,17 @@
-from DBService.src.application.dto import QueryResultDTO, RunText2SQLCommand
-from DBService.src.domain.events import QueryExecuted
-from DBService.src.domain.exceptions import (
+from src.application.dto import QueryResultDTO, RunText2SQLCommand
+from src.domain.events import QueryExecuted
+from src.domain.exceptions import (
     ConnectionAccessDenied,
     ConnectionNotFound,
     QueryExecutionError,
     SchemaIntrospectionError,
     SQLGenerationError,
 )
-from DBService.src.domain.ports.publisher import IEventPublisher
-from DBService.src.domain.ports.query_executor import IQueryExecutor
-from DBService.src.domain.ports.schema_reader import ISchemaReader
-from DBService.src.domain.ports.sql_generator import ISQLGenerator
-from DBService.src.domain.ports.unit_of_work import IUnitOfWork
+from src.domain.ports.publisher import IEventPublisher
+from src.domain.ports.query_executor import IQueryExecutor
+from src.domain.ports.schema_reader import ISchemaReader
+from src.domain.ports.sql_generator import ISQLGenerator
+from src.domain.ports.unit_of_work import IUnitOfWork
 
 
 class RunText2SQL:

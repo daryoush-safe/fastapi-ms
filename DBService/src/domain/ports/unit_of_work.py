@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from typing_extensions import Self
 
-from DBService.src.domain.ports import repository
+from src.domain.ports import repository
 
 
 class IUnitOfWork(ABC):

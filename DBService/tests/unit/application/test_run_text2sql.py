@@ -2,11 +2,10 @@ import uuid
 from unittest.mock import AsyncMock
 
 import pytest
-
-from DBService.src.application.dto import RunText2SQLCommand
-from DBService.src.application.use_cases.run_text2sql import RunText2SQL
-from DBService.src.domain.exceptions import ConnectionAccessDenied, ConnectionNotFound
-from DBService.src.domain.models import DatabaseConnection
+from src.application.dto import RunText2SQLCommand
+from src.application.use_cases.run_text2sql import RunText2SQL
+from src.domain.exceptions import ConnectionAccessDenied, ConnectionNotFound
+from src.domain.models import DatabaseConnection
 
 
 @pytest.fixture

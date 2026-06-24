@@ -1,10 +1,9 @@
 import uuid
 
 from fastapi import APIRouter
-
-from DBService.src.application.dto import RunText2SQLCommand
-from DBService.src.interfaces.http.dependencies import CurrentUserDep, RunText2SQLDep
-from DBService.src.interfaces.http.schemas import QueryRequest, QueryResponse
+from src.application.dto import RunText2SQLCommand
+from src.interfaces.http.dependencies import CurrentUserDep, RunText2SQLDep
+from src.interfaces.http.schemas import QueryRequest, QueryResponse
 
 router = APIRouter(prefix="/query", tags=["query"])
 

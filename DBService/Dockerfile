@@ -24,9 +24,8 @@ WORKDIR /app
 # Virtualenv from builder (workspace root)
 COPY --from=builder /app/.venv /app/.venv
 
-# Service source — must live at /app/DBService/src so DBService.src.* imports resolve
-COPY DBService/__init__.py  ./DBService/__init__.py
-COPY DBService/src           ./DBService/src
+# Service source — /app/src so `from src.*` imports resolve (PYTHONPATH=/app)
+COPY DBService/src           ./src
 
 # Alembic (placed at /app so alembic.ini script_location=migrations resolves)
 COPY DBService/migrations   ./migrations
@@ -45,4 +44,4 @@ EXPOSE 8003
 CMD ["/bin/sh", "-c", \
      "while ! nc -z ${DB_HOST:-postgres} ${DB_PORT:-5432}; do sleep 2; done && \
       alembic upgrade head && \
-      uvicorn DBService.src.main:app --host 0.0.0.0 --port 8003"]
+      uvicorn src.main:app --host 0.0.0.0 --port 8003"]

@@ -6,8 +6,8 @@ import json
 from shared_core.base_event import DomainEvent
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from DBService.src.domain.ports.publisher import IEventPublisher
-from DBService.src.infrastructure.persistence.postgres.models.outbox_orm import OutboxORM
+from src.domain.ports.publisher import IEventPublisher
+from src.infrastructure.persistence.postgres.models.outbox_orm import OutboxORM
 
 
 class OutboxPublisher(IEventPublisher):

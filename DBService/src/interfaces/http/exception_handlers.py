@@ -3,7 +3,7 @@ import logging
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from DBService.src.domain.exceptions import (
+from src.domain.exceptions import (
     ConnectionAccessDenied,
     ConnectionNotFound,
     DomainError,

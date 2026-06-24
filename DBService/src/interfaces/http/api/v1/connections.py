@@ -1,10 +1,9 @@
 import uuid
 
 from fastapi import APIRouter
-
-from DBService.src.application.dto import RegisterConnectionCommand
-from DBService.src.interfaces.http.dependencies import CurrentUserDep, RegisterConnectionDep
-from DBService.src.interfaces.http.schemas import ConnectionResponse, RegisterConnectionRequest
+from src.application.dto import RegisterConnectionCommand
+from src.interfaces.http.dependencies import CurrentUserDep, RegisterConnectionDep
+from src.interfaces.http.schemas import ConnectionResponse, RegisterConnectionRequest
 
 router = APIRouter(prefix="/connections", tags=["connections"])
 

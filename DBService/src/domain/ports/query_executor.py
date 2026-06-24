@@ -1,7 +1,7 @@
 import uuid
 from abc import ABC, abstractmethod
 
-from DBService.src.domain.models import QueryResult
+from src.domain.models import QueryResult
 
 
 class IQueryExecutor(ABC):
