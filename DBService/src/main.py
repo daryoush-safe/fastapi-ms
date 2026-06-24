@@ -7,11 +7,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from shared_infra.observability import setup_observability
 from sqlalchemy import text
 
-from DBService.src.config import get_settings
-from DBService.src.container import Container
-from DBService.src.interfaces.http.api.v1.connections import router as connections_router
-from DBService.src.interfaces.http.api.v1.query import router as query_router
-from DBService.src.interfaces.http.exception_handlers import register_exception_handlers
+from src.config import get_settings
+from src.container import Container
+from src.interfaces.http.api.v1.connections import router as connections_router
+from src.interfaces.http.api.v1.query import router as query_router
+from src.interfaces.http.exception_handlers import register_exception_handlers
 
 settings = get_settings()
 
@@ -60,7 +60,7 @@ app = create_app()
 
 if __name__ == "__main__":
     uvicorn.run(
-        "DBService.src.main:app",
+        "src.main:app",
         host=settings.app_host,
         port=settings.app_port,
         reload=settings.debug,

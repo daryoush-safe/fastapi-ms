@@ -24,6 +24,12 @@ dependencies = [
 requires = ["setuptools>=80"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
 [tool.uv.sources]
 shared_core  = { workspace = true }
 shared_infra = { workspace = true }

@@ -4,8 +4,8 @@ from datetime import datetime, timezone
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import create_async_engine
 
-from DBService.src.domain.models import QueryResult
-from DBService.src.domain.ports.query_executor import IQueryExecutor
+from src.domain.models import QueryResult
+from src.domain.ports.query_executor import IQueryExecutor
 
 
 class SqlAlchemyQueryExecutor(IQueryExecutor):

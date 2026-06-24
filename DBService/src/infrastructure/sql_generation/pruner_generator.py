@@ -1,6 +1,6 @@
 import httpx
 
-from DBService.src.domain.ports.sql_generator import ISQLGenerator
+from src.domain.ports.sql_generator import ISQLGenerator
 
 
 class PrunerSQLGenerator(ISQLGenerator):

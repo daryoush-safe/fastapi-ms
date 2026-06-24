@@ -4,14 +4,14 @@ from unittest.mock import AsyncMock, patch
 import httpx
 import pytest
 
-from DBService.src.application.dto import RunText2SQLCommand
-from DBService.src.application.use_cases.run_text2sql import RunText2SQL
-from DBService.src.domain.models import DatabaseConnection
-from DBService.src.infrastructure.db_introspection.sqlalchemy_schema_reader import (
+from src.application.dto import RunText2SQLCommand
+from src.application.use_cases.run_text2sql import RunText2SQL
+from src.domain.models import DatabaseConnection
+from src.infrastructure.db_introspection.sqlalchemy_schema_reader import (
     SqlAlchemySchemaReader,
 )
-from DBService.src.infrastructure.query_execution.sqlalchemy_executor import SqlAlchemyQueryExecutor
-from DBService.src.infrastructure.sql_generation.pruner_generator import PrunerSQLGenerator
+from src.infrastructure.query_execution.sqlalchemy_executor import SqlAlchemyQueryExecutor
+from src.infrastructure.sql_generation.pruner_generator import PrunerSQLGenerator
 
 
 async def test_full_pipeline(target_sqlite_dsn):

@@ -5,10 +5,10 @@ from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from DBService.src.config import get_settings
-from DBService.src.infrastructure.persistence.postgres.models.base_orm import Base
-from DBService.src.infrastructure.persistence.postgres.models.connection_orm import ConnectionORM  # noqa: F401
-from DBService.src.infrastructure.persistence.postgres.models.outbox_orm import OutboxORM  # noqa: F401
+from src.config import get_settings
+from src.infrastructure.persistence.postgres.models.base_orm import Base
+from src.infrastructure.persistence.postgres.models.connection_orm import ConnectionORM  # noqa: F401
+from src.infrastructure.persistence.postgres.models.outbox_orm import OutboxORM  # noqa: F401
 
 config = context.config
 settings = get_settings()

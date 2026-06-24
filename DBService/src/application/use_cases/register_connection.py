@@ -1,9 +1,9 @@
 import uuid
 
-from DBService.src.application.dto import RegisterConnectionCommand
-from DBService.src.domain.exceptions import UnsupportedEngineError
-from DBService.src.domain.models import DatabaseConnection
-from DBService.src.domain.ports.unit_of_work import IUnitOfWork
+from src.application.dto import RegisterConnectionCommand
+from src.domain.exceptions import UnsupportedEngineError
+from src.domain.models import DatabaseConnection
+from src.domain.ports.unit_of_work import IUnitOfWork
 
 _SUPPORTED_ENGINES = {"postgres", "mysql", "sqlite"}
 

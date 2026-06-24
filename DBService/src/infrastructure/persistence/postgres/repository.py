@@ -5,9 +5,9 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from DBService.src.domain.models import DatabaseConnection
-from DBService.src.domain.ports.repository import IConnectionRepository
-from DBService.src.infrastructure.persistence.postgres.models.connection_orm import ConnectionORM
+from src.domain.models import DatabaseConnection
+from src.domain.ports.repository import IConnectionRepository
+from src.infrastructure.persistence.postgres.models.connection_orm import ConnectionORM
 
 
 class SqlAlchemyConnectionRepository(IConnectionRepository):

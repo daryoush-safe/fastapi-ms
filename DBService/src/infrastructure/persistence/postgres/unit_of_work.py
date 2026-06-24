@@ -4,8 +4,8 @@ from typing import Self
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from DBService.src.domain.ports.unit_of_work import IUnitOfWork
-from DBService.src.infrastructure.persistence.postgres.repository import (
+from src.domain.ports.unit_of_work import IUnitOfWork
+from src.infrastructure.persistence.postgres.repository import (
     SqlAlchemyConnectionRepository,
 )
 

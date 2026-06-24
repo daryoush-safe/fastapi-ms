@@ -1,7 +1,7 @@
 import uuid
 from dataclasses import dataclass
 
-from DBService.src.domain.models import QueryResult
+from src.domain.models import QueryResult
 
 
 @dataclass
