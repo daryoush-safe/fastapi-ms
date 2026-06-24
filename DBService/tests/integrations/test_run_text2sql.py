@@ -3,7 +3,6 @@ from unittest.mock import AsyncMock, patch
 
 import httpx
 import pytest
-
 from src.application.dto import RunText2SQLCommand
 from src.application.use_cases.run_text2sql import RunText2SQL
 from src.domain.models import DatabaseConnection

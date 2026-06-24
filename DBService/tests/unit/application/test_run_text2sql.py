@@ -2,7 +2,6 @@ import uuid
 from unittest.mock import AsyncMock
 
 import pytest
-
 from src.application.dto import RunText2SQLCommand
 from src.application.use_cases.run_text2sql import RunText2SQL
 from src.domain.exceptions import ConnectionAccessDenied, ConnectionNotFound

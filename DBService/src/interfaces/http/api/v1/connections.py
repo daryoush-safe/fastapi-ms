@@ -1,7 +1,6 @@
 import uuid
 
 from fastapi import APIRouter
-
 from src.application.dto import RegisterConnectionCommand
 from src.interfaces.http.dependencies import CurrentUserDep, RegisterConnectionDep
 from src.interfaces.http.schemas import ConnectionResponse, RegisterConnectionRequest
