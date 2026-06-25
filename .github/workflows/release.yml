@@ -71,59 +71,39 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.service }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service }}
 
-  # Dormant until BOTH are true:
-  #   1. Repo variable DEPLOY_ENABLED = true
-  #      (Settings → Secrets and variables → Actions → Variables)
-  #   2. The DEPLOY_* and app secrets below exist
-  #      (Settings → Secrets and variables → Actions → Secrets)
-  deploy:
+  update-platform-manifests:
     needs: build-and-push
     runs-on: ubuntu-latest
-    if: ${{ vars.DEPLOY_ENABLED == 'true' && github.ref == 'refs/heads/master' }}
-    environment: production
+    if: ${{ github.ref == 'refs/heads/master' }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout platform repo
+        uses: actions/checkout@v4
+        with:
+          repository: daryoush-safe/platform
+          token: ${{ secrets.PLATFORM_REPO_TOKEN }}
+          path: platform
 
-      - name: Render production .env + deploy bundle
+      - name: Install yq
         run: |
-          cat > .env <<EOF
-          POSTGRES_SUPERUSER_PASSWORD=${{ secrets.POSTGRES_SUPERUSER_PASSWORD }}
-          USER_SERVICE_DB_PASSWORD=${{ secrets.USER_SERVICE_DB_PASSWORD }}
-          SUBSCRIPTION_SERVICE_DB_PASSWORD=${{ secrets.SUBSCRIPTION_SERVICE_DB_PASSWORD }}
-          DEBEZIUM_DB_PASSWORD=${{ secrets.DEBEZIUM_DB_PASSWORD }}
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
-          JWT_ALGORITHM=HS256
-          JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
-          STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
-          STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}
-          CORS_ORIGINS=${{ vars.CORS_ORIGINS }}
-          IMAGE_OWNER=${{ github.repository_owner }}
-          IMAGE_TAG=sha-${{ github.sha }}
-          EOF
-          # Files the host needs to bring the stack up.
-          tar czf deploy.tgz \
-            docker-compose.yaml docker-compose.prod.yaml \
-            debezium PostgresDB scripts .env
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
 
-      - name: Copy bundle + deploy over SSH
+      - name: Bump image tags
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_deploy
-          chmod 600 ~/.ssh/id_deploy
-          ssh-keyscan -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
-          scp -i ~/.ssh/id_deploy deploy.tgz \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/tmp/deploy.tgz"
-          ssh -i ~/.ssh/id_deploy \
-            "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" bash -s <<'REMOTE'
-            set -euo pipefail
-            APP_DIR="$HOME/fastapi-ms"
-            mkdir -p "$APP_DIR"
-            tar xzf /tmp/deploy.tgz -C "$APP_DIR"
-            cd "$APP_DIR"
-            # If your GHCR images are PRIVATE, log in first (add a GHCR_PULL_TOKEN secret
-            # with read:packages and uncomment — note: secret is interpolated by Actions):
-            #   echo "GHCR_PULL_TOKEN_PLACEHOLDER" | docker login ghcr.io -u OWNER --password-stdin
-            docker compose -f docker-compose.yaml -f docker-compose.prod.yaml pull
-            docker compose -f docker-compose.yaml -f docker-compose.prod.yaml up -d
-            docker image prune -f
-          REMOTE
+          cd platform
+          yq -i '.image.tag = "sha-${{ github.sha }}"' apps/values/userservice.yaml
+          yq -i '.image.tag = "sha-${{ github.sha }}"' apps/values/subscriptionservice.yaml
+          yq -i '.image.tag = "sha-${{ github.sha }}"' apps/values/dbservice.yaml
+
+      - name: Commit and push
+        run: |
+          cd platform
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "No tag changes"
+          else
+            git add apps/values/userservice.yaml apps/values/subscriptionservice.yaml apps/values/dbservice.yaml
+            git commit -m "chore: bump image tags to sha-${{ github.sha }}"
+            git push
+          fi
