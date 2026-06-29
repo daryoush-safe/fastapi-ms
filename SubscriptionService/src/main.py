@@ -46,6 +46,7 @@ def create_app() -> FastAPI:
         title=settings.app_name,
         debug=settings.debug,
         lifespan=lifespan,
+        root_path=settings.root_path,
     )
     app.add_middleware(RateLimitMiddleware, requests_per_minute=60)
     app.add_middleware(
