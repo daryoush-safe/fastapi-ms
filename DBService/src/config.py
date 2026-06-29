@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     app_host: str = Field("0.0.0.0", alias="APP_HOST")
     app_port: int = Field(8003, alias="APP_PORT")
     debug: bool = Field(False, alias="DEBUG")
+    root_path: str = Field("db", alias="ROOT_PATH")
 
     # CORS
     cors_origins: str = Field("http://localhost:3000", alias="CORS_ORIGINS")
