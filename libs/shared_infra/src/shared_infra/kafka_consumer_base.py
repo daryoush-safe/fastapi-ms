@@ -149,7 +149,6 @@ class BaseKafkaConsumer(ABC):
             await consumer.commit()
 
     async def _send_to_dlq(self, msg: Any) -> None:
-        """Park a poison message in `<topic>.dlq`. Raises if the write fails."""
         if self._producer is None:
             raise RuntimeError("DLQ producer not initialised — cannot park message")
 

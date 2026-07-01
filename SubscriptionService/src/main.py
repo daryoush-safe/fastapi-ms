@@ -4,6 +4,7 @@ from typing import AsyncIterator
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from shared_infra.metrics import register_db_pool_gauge
 from shared_infra.middleware import RateLimitMiddleware
 from shared_infra.observability import setup_observability
 from sqlalchemy import text
@@ -66,6 +67,8 @@ def create_app() -> FastAPI:
         log_level="DEBUG" if settings.debug else "INFO",
         json_logs=not settings.debug,
     )
+    register_db_pool_gauge(lambda: Container.engine().pool)
+
     return app
 
 

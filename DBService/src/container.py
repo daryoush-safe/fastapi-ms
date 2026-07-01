@@ -1,4 +1,5 @@
 import httpx
+from shared_infra.metrics import instrument_db_engine
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -39,6 +40,7 @@ class Container:
                 max_overflow=s.db_max_overflow,
             )
             cls._session_factory = async_sessionmaker(cls._engine, expire_on_commit=False)
+            instrument_db_engine(cls._engine)
         return cls._session_factory
 
     @classmethod
