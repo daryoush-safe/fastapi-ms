@@ -14,6 +14,16 @@ def _add_service(service_name: str):
     return processor
 
 
+def _add_trace_context(_logger, _method_name, event_dict):
+    from opentelemetry import trace
+
+    ctx = trace.get_current_span().get_span_context()
+    if ctx.is_valid:
+        event_dict["trace_id"] = format(ctx.trace_id, "032x")
+        event_dict["span_id"] = format(ctx.span_id, "016x")
+    return event_dict
+
+
 def configure_logging(
     service_name: str,
     *,
@@ -27,6 +37,7 @@ def configure_logging(
         structlog.processors.add_log_level,
         structlog.stdlib.add_logger_name,
         _add_service(service_name),
+        _add_trace_context,
         structlog.processors.TimeStamper(fmt="iso", utc=True),
     ]
 

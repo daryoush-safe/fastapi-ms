@@ -4,6 +4,7 @@ import dataclasses
 import json
 
 from shared_core.base_event import DomainEvent
+from shared_infra.tracing import TRACE_CARRIER_KEY, inject_trace_context
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from src.domain.ports.publisher import IEventPublisher
@@ -20,6 +21,7 @@ class OutboxPublisher(IEventPublisher):
                 k: str(v) if not isinstance(v, (str, int, float, bool, type(None))) else v
                 for k, v in dataclasses.asdict(event).items()
             }
+            payload[TRACE_CARRIER_KEY] = inject_trace_context()
             record = OutboxORM(
                 aggregate_id=str(getattr(event, "connection_id", event.event_id)),
                 aggregate_type="dbquery",

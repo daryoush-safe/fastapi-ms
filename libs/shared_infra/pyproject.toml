@@ -13,6 +13,11 @@ dependencies = [
     "prometheus-fastapi-instrumentator>=7.0.0",
     "structlog>=25.1.0",
     "shared_core",
+    "opentelemetry-api>=1.43.0",
+    "opentelemetry-sdk>=1.43.0",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.43.0",
+    "opentelemetry-instrumentation-fastapi>=0.64b0",
+    "opentelemetry-instrumentation-sqlalchemy>=0.64b0",
 ]
 
 [tool.uv.sources]

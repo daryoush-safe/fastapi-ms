@@ -7,8 +7,14 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from aiokafka import AIOKafkaConsumer, AIOKafkaProducer
+from opentelemetry import trace
+from opentelemetry.propagate import extract
+from opentelemetry.trace import SpanKind, Status, StatusCode
+
+from shared_infra.tracing import TRACE_CARRIER_KEY
 
 logger = logging.getLogger(__name__)
+_tracer = trace.get_tracer(__name__)
 
 _DLQ_SUFFIX = ".dlq"
 _DLQ_SEND_TIMEOUT_S = 5
@@ -113,17 +119,39 @@ class BaseKafkaConsumer(ABC):
             raw_payload: str | dict = envelope.get("payload", {})
 
             payload: dict[str, Any] = (
-                json.loads(raw_payload) if isinstance(raw_payload, str) else raw_payload
+                json.loads(raw_payload) if isinstance(raw_payload, str) else dict(raw_payload)
             )
 
-            logger.info(
-                "Worker %d | topic=%s event_type=%s",
-                worker_id,
-                msg.topic,
-                event_type,
-            )
+            carrier = payload.pop(TRACE_CARRIER_KEY, None)
+            parent_ctx = extract(carrier) if carrier else None
 
-            await self.handle(event_type, payload)
+            with _tracer.start_as_current_span(
+                f"process {msg.topic}",
+                context=parent_ctx,
+                kind=SpanKind.CONSUMER,
+                attributes={
+                    "messaging.system": "kafka",
+                    "messaging.operation": "process",
+                    "messaging.destination.name": msg.topic,
+                    "messaging.kafka.consumer.group": self._group_id,
+                    "messaging.kafka.partition": msg.partition,
+                    "messaging.kafka.message.offset": msg.offset,
+                    "event.type": event_type,
+                },
+            ) as span:
+                logger.info(
+                    "Worker %d | topic=%s event_type=%s",
+                    worker_id,
+                    msg.topic,
+                    event_type,
+                )
+                try:
+                    await self.handle(event_type, payload)
+                except Exception as exc:
+                    span.set_status(Status(StatusCode.ERROR))
+                    span.record_exception(exc)
+                    raise
+
             await consumer.commit()
 
         except Exception:

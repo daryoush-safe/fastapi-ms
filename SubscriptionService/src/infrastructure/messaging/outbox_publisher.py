@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 from shared_core.base_event import DomainEvent
+from shared_infra.tracing import TRACE_CARRIER_KEY, inject_trace_context
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.domain.ports.publisher import AbstractEventPublisher
 from src.infrastructure.persistence.postgres.models.outbox_orm import OutboxORM
@@ -15,11 +16,13 @@ class OutboxPublisher(AbstractEventPublisher):
         self._session = session
 
     async def publish(self, event: DomainEvent) -> None:
+        payload = self._serialize(event)
+        payload[TRACE_CARRIER_KEY] = inject_trace_context()
         record = OutboxORM(
             aggregate_id=str(getattr(event, "subscription_id", event.event_id)),
             aggregate_type=SubscriptionServiceTopics.AGGREGATE_TYPE,  # → "subscription"
             event_type=event.event_type,
-            payload=json.dumps(self._serialize(event)),
+            payload=json.dumps(payload),
         )
         self._session.add(record)
 
