@@ -30,3 +30,8 @@ GRANT USAGE ON SCHEMA dbservice TO debezium_role;
 
 ALTER DEFAULT PRIVILEGES FOR ROLE db_service_role IN SCHEMA dbservice
     GRANT SELECT ON TABLES TO debezium_role;
+
+-- ─── Chat Service ─────────────────────────────────────────────────────────────
+-- No outbox/CDC: ChatService talks to the ML service over HTTP, not Kafka.
+GRANT CREATE ON DATABASE fastapi_ms TO chat_service_role;
+GRANT USAGE, CREATE ON SCHEMA chatservice TO chat_service_role;

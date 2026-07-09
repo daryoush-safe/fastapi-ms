@@ -34,6 +34,9 @@ jobs:
           - service: DBService
             dockerfile: DBService/Dockerfile
             image: db-service
+          - service: ChatService
+            dockerfile: ChatService/Dockerfile
+            image: chat-service
     steps:
       - uses: actions/checkout@v4
 

@@ -5,6 +5,7 @@ set -euo pipefail
 : "${SUBSCRIPTION_SERVICE_DB_PASSWORD:?SUBSCRIPTION_SERVICE_DB_PASSWORD must be set}"
 : "${DEBEZIUM_DB_PASSWORD:?DEBEZIUM_DB_PASSWORD must be set}"
 : "${DB_SERVICE_DB_PASSWORD:?DB_SERVICE_DB_PASSWORD must be set}"
+: "${CHAT_SERVICE_DB_PASSWORD:?CHAT_SERVICE_DB_PASSWORD must be set}"
 
 psql -v ON_ERROR_STOP=1 \
   --username "$POSTGRES_USER" \
@@ -12,9 +13,11 @@ psql -v ON_ERROR_STOP=1 \
   -v user_pass="$USER_SERVICE_DB_PASSWORD" \
   -v sub_pass="$SUBSCRIPTION_SERVICE_DB_PASSWORD" \
   -v dbz_pass="$DEBEZIUM_DB_PASSWORD" \
-  -v db_pass="$DB_SERVICE_DB_PASSWORD" <<'SQL'
+  -v db_pass="$DB_SERVICE_DB_PASSWORD" \
+  -v chat_pass="$CHAT_SERVICE_DB_PASSWORD" <<'SQL'
 CREATE ROLE user_service_role          WITH LOGIN PASSWORD :'user_pass' REPLICATION;
 CREATE ROLE subscription_service_role  WITH LOGIN PASSWORD :'sub_pass'  REPLICATION;
 CREATE ROLE debezium_role              WITH LOGIN PASSWORD :'dbz_pass'  REPLICATION;
 CREATE ROLE db_service_role            WITH LOGIN PASSWORD :'db_pass'   REPLICATION;
+CREATE ROLE chat_service_role          WITH LOGIN PASSWORD :'chat_pass';
 SQL
