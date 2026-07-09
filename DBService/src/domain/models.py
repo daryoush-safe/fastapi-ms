@@ -22,3 +22,23 @@ class QueryResult:
     columns: list[str]
     rows: list[list]
     executed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+@dataclass
+class ColumnInfo:
+    name: str
+    type: str
+    nullable: bool
+    primary_key: bool
+
+
+@dataclass
+class TableSchema:
+    name: str
+    columns: list[ColumnInfo]
+
+
+@dataclass
+class DatabaseSchema:
+    connection_id: uuid.UUID
+    tables: list[TableSchema]

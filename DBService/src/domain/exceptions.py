@@ -41,3 +41,8 @@ class ConnectionVerificationError(DomainError):
 class SQLValidationError(DomainError):
     def __init__(self, reason: str) -> None:
         super().__init__(f"SQL validation failed: {reason}")
+
+
+class SchemaExtractionError(DomainError):
+    def __init__(self, reason: str) -> None:
+        super().__init__(f"Schema extraction failed: {reason}")

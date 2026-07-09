@@ -16,6 +16,9 @@ from src.infrastructure.connection_probe.sqlalchemy_verifier import (
 )
 from src.infrastructure.persistence.postgres.unit_of_work import SqlAlchemyUnitOfWork
 from src.infrastructure.query_execution.sqlalchemy_executor import SqlAlchemyQueryExecutor
+from src.infrastructure.schema_extraction.sqlalchemy_extractor import (
+    SqlAlchemySchemaExtractor,
+)
 
 
 class Container:
@@ -59,5 +62,6 @@ class Container:
                 uow_factory=cls._uow_factory(),
                 connection_verifier=SqlAlchemyConnectionVerifier(),
                 query_executor=SqlAlchemyQueryExecutor(),
+                schema_extractor=SqlAlchemySchemaExtractor(),
             )
         return cls._db_service

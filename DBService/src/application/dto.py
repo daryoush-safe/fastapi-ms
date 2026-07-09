@@ -1,7 +1,13 @@
 import uuid
 from dataclasses import dataclass
 
-from src.domain.models import QueryResult
+from src.domain.models import DatabaseSchema, QueryResult
+
+
+@dataclass
+class ExtractSchemaDTO:
+    connection_id: uuid.UUID
+    owner_id: uuid.UUID
 
 
 @dataclass
@@ -34,4 +40,45 @@ class QueryResultDTO:
         return cls(
             columns=result.columns,
             rows=result.rows,
+        )
+
+
+@dataclass
+class ColumnDTO:
+    name: str
+    type: str
+    nullable: bool
+    primary_key: bool
+
+
+@dataclass
+class TableSchemaDTO:
+    name: str
+    columns: list[ColumnDTO]
+
+
+@dataclass
+class SchemaResultDTO:
+    connection_id: uuid.UUID
+    tables: list[TableSchemaDTO]
+
+    @classmethod
+    def from_domain(cls, schema: DatabaseSchema) -> "SchemaResultDTO":
+        return cls(
+            connection_id=schema.connection_id,
+            tables=[
+                TableSchemaDTO(
+                    name=table.name,
+                    columns=[
+                        ColumnDTO(
+                            name=col.name,
+                            type=col.type,
+                            nullable=col.nullable,
+                            primary_key=col.primary_key,
+                        )
+                        for col in table.columns
+                    ],
+                )
+                for table in schema.tables
+            ],
         )

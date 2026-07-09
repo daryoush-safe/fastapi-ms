@@ -10,6 +10,7 @@ from src.domain.exceptions import (
     DomainError,
     InvalidConnectionConfigError,
     QueryExecutionError,
+    SchemaExtractionError,
     SQLValidationError,
     UnsupportedEngineError,
 )
@@ -49,6 +50,10 @@ def query_execution_handler(request: Request, exc: Exception) -> JSONResponse:
     return JSONResponse(status_code=422, content=_body(str(exc)))
 
 
+def schema_extraction_handler(request: Request, exc: Exception) -> JSONResponse:
+    return JSONResponse(status_code=502, content=_body(str(exc)))
+
+
 def unhandled_domain_handler(request: Request, exc: Exception) -> JSONResponse:
     logger.error("Unhandled domain error: %s", exc, exc_info=True)
     return JSONResponse(status_code=500, content=_body("An unexpected error occurred"))
@@ -62,4 +67,5 @@ def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(ConnectionVerificationError, connection_verification_handler)
     app.add_exception_handler(SQLValidationError, sql_validation_handler)
     app.add_exception_handler(QueryExecutionError, query_execution_handler)
+    app.add_exception_handler(SchemaExtractionError, schema_extraction_handler)
     app.add_exception_handler(DomainError, unhandled_domain_handler)
