@@ -36,9 +36,7 @@ async def register_connection(
     )
 
 
-@router.get(
-    "/{connection_id}/schema", response_model=ExtractSchemaResponse, status_code=200
-)
+@router.get("/{connection_id}/schema", response_model=ExtractSchemaResponse, status_code=200)
 async def extract_schema(
     connection_id: uuid.UUID,
     service: DBServiceDep,

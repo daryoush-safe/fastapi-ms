@@ -39,6 +39,4 @@ class DBService:
         return await RunText2SQL(self._uow_factory(), self._query_executor).execute(dto)
 
     async def extract_schema(self, dto: ExtractSchemaDTO) -> SchemaResultDTO:
-        return await ExtractSchema(
-            self._uow_factory(), self._schema_extractor
-        ).execute(dto)
+        return await ExtractSchema(self._uow_factory(), self._schema_extractor).execute(dto)
