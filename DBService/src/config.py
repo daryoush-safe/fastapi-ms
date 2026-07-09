@@ -13,10 +13,6 @@ class Settings(BaseSettings):
     db_pool_size: int = Field(5, alias="DB_POOL_SIZE")
     db_max_overflow: int = Field(10, alias="DB_MAX_OVERFLOW")
 
-    # Pruner model service
-    pruner_base_url: str = Field(..., alias="PRUNER_BASE_URL")
-    pruner_timeout: float = Field(30.0, alias="PRUNER_TIMEOUT")
-
     # Auth (JWT)
     jwt_secret: str = Field(..., alias="JWT_SECRET")
     jwt_algorithm: str = Field("HS256", alias="JWT_ALGORITHM")

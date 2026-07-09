@@ -1,16 +1,20 @@
 import uuid
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
-import httpx
 import pytest
-from src.application.dto import RunText2SQLCommand
+from src.application.dto import RunText2SQLDTO
 from src.application.use_cases.run_text2sql import RunText2SQL
+from src.domain.exceptions import QueryExecutionError
 from src.domain.models import DatabaseConnection
-from src.infrastructure.db_introspection.sqlalchemy_schema_reader import (
-    SqlAlchemySchemaReader,
-)
 from src.infrastructure.query_execution.sqlalchemy_executor import SqlAlchemyQueryExecutor
-from src.infrastructure.sql_generation.pruner_generator import PrunerSQLGenerator
+
+
+def _uow_returning(conn):
+    mock_uow = AsyncMock()
+    mock_uow.__aenter__.return_value = mock_uow
+    mock_uow.__aexit__.return_value = None
+    mock_uow.connections.get.return_value = conn
+    return mock_uow
 
 
 async def test_full_pipeline(target_sqlite_dsn):
@@ -26,29 +30,44 @@ async def test_full_pipeline(target_sqlite_dsn):
         is_active=True,
     )
 
-    mock_uow = AsyncMock()
-    mock_uow.__aenter__.return_value = mock_uow
-    mock_uow.__aexit__.return_value = None
-    mock_uow.connections.get.return_value = fake_conn
+    use_case = RunText2SQL(
+        uow=_uow_returning(fake_conn),
+        query_executor=SqlAlchemyQueryExecutor(),
+    )
+    result = await use_case.execute(
+        RunText2SQLDTO(
+            connection_id=conn_id,
+            owner_id=owner_id,
+            sql="SELECT id, name FROM items",
+        )
+    )
 
-    fake_request = httpx.Request("POST", "http://pruner/generate")
-    fake_response = httpx.Response(200, json={"sql": "SELECT 1"})
-    fake_response.request = fake_request
-    with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=fake_response):
-        async with httpx.AsyncClient() as client:
-            use_case = RunText2SQL(
-                uow=mock_uow,
-                schema_reader=SqlAlchemySchemaReader(),
-                sql_generator=PrunerSQLGenerator(base_url="http://pruner", client=client),
-                query_executor=SqlAlchemyQueryExecutor(),
-                publisher=AsyncMock(),
-            )
-            cmd = RunText2SQLCommand(
+    assert result.columns == ["id", "name"]
+    assert result.rows == [[1, "test"]]
+
+
+async def test_execution_error_is_surfaced(target_sqlite_dsn):
+    conn_id = uuid.uuid4()
+    owner_id = uuid.uuid4()
+    fake_conn = DatabaseConnection(
+        id=conn_id,
+        owner_id=owner_id,
+        name="test-db",
+        engine="sqlite",
+        dsn=target_sqlite_dsn,
+        schema_cache=None,
+        is_active=True,
+    )
+
+    use_case = RunText2SQL(
+        uow=_uow_returning(fake_conn),
+        query_executor=SqlAlchemyQueryExecutor(),
+    )
+    with pytest.raises(QueryExecutionError):
+        await use_case.execute(
+            RunText2SQLDTO(
                 connection_id=conn_id,
                 owner_id=owner_id,
-                prompt="What is the capital of France?",
+                sql="SELECT missing_column FROM items",
             )
-            result = await use_case.execute(cmd)
-
-    assert result.generated_sql == "SELECT 1"
-    assert result.rows == [[1]]
+        )

@@ -19,9 +19,7 @@ settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    await Container.startup()
     yield
-    await Container.shutdown()
 
 
 async def _check_db() -> bool:
