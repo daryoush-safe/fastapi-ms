@@ -6,24 +6,23 @@ from sqlalchemy.ext.asyncio import create_async_engine
 
 from src.domain.models import QueryResult
 from src.domain.ports.query_executor import IQueryExecutor
+from src.infrastructure.dsn import to_async_url
 
 
 class SqlAlchemyQueryExecutor(IQueryExecutor):
     async def execute(
-        self, dsn: str, sql: str, connection_id: uuid.UUID, prompt: str
+        self, engine: str, dsn: str, sql: str, connection_id: uuid.UUID
     ) -> QueryResult:
-        engine = create_async_engine(dsn)
+        eng = create_async_engine(to_async_url(engine, dsn))
         try:
-            async with engine.connect() as conn:
+            async with eng.connect() as conn:
                 result = await conn.execute(text(sql))
                 columns = list(result.keys())
                 rows = [list(row) for row in result.fetchall()]
         finally:
-            await engine.dispose()
+            await eng.dispose()
         return QueryResult(
             connection_id=connection_id,
-            prompt=prompt,
-            generated_sql=sql,
             columns=columns,
             rows=rows,
             executed_at=datetime.now(timezone.utc),

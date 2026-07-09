@@ -5,30 +5,33 @@ from src.domain.models import QueryResult
 
 
 @dataclass
-class RunText2SQLCommand:
+class RunText2SQLDTO:
     connection_id: uuid.UUID
     owner_id: uuid.UUID
-    prompt: str
+    sql: str
 
 
 @dataclass
-class RegisterConnectionCommand:
+class RegisterConnectionDTO:
     owner_id: uuid.UUID
     name: str
     engine: str
-    dsn: str
+    dsn: str | None = None
+    host: str | None = None
+    port: int | None = None
+    username: str | None = None
+    password: str | None = None
+    database: str | None = None
 
 
 @dataclass
 class QueryResultDTO:
-    generated_sql: str
     columns: list[str]
     rows: list[list]
 
     @classmethod
     def from_domain(cls, result: QueryResult) -> "QueryResultDTO":
         return cls(
-            generated_sql=result.generated_sql,
             columns=result.columns,
             rows=result.rows,
         )

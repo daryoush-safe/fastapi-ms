@@ -1,8 +1,8 @@
-# from __future__ import annotations
+from __future__ import annotations
 
 import uuid
-from dataclasses import dataclass
-from datetime import datetime
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 
 
 @dataclass
@@ -19,8 +19,6 @@ class DatabaseConnection:
 @dataclass
 class QueryResult:
     connection_id: uuid.UUID
-    prompt: str
-    generated_sql: str
     columns: list[str]
     rows: list[list]
-    executed_at: datetime
+    executed_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
