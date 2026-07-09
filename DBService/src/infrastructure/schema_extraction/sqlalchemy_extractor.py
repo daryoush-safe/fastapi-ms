@@ -10,9 +10,7 @@ from src.infrastructure.dsn import to_async_url
 
 
 class SqlAlchemySchemaExtractor(ISchemaExtractor):
-    async def execute(
-        self, engine: str, dsn: str, connection_id: uuid.UUID
-    ) -> DatabaseSchema:
+    async def execute(self, engine: str, dsn: str, connection_id: uuid.UUID) -> DatabaseSchema:
         eng = create_async_engine(to_async_url(engine, dsn))
         try:
             async with eng.connect() as conn:
@@ -26,9 +24,7 @@ class SqlAlchemySchemaExtractor(ISchemaExtractor):
         inspector = inspect(sync_conn)
         tables: list[TableSchema] = []
         for table_name in inspector.get_table_names():
-            pk_cols = set(
-                inspector.get_pk_constraint(table_name).get("constrained_columns") or []
-            )
+            pk_cols = set(inspector.get_pk_constraint(table_name).get("constrained_columns") or [])
             columns = [
                 ColumnInfo(
                     name=col["name"],
