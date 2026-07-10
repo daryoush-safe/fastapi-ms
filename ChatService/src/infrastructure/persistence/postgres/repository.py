@@ -5,8 +5,13 @@ import uuid
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.domain.models import ChatMessage, ChatThread
-from src.domain.ports.repository import IChatMessageRepository, IChatThreadRepository
+from src.domain.models import ChatMessage, ChatThread, ConnectionRef
+from src.domain.ports.repository import (
+    IChatMessageRepository,
+    IChatThreadRepository,
+    IConnectionRefRepository,
+)
+from src.infrastructure.persistence.postgres.models.connection_orm import ConnectionRefORM
 from src.infrastructure.persistence.postgres.models.message_orm import ChatMessageORM
 from src.infrastructure.persistence.postgres.models.thread_orm import ChatThreadORM
 
@@ -43,6 +48,7 @@ class SqlAlchemyChatThreadRepository(IChatThreadRepository):
         return ChatThread(
             id=orm.id,
             user_id=orm.user_id,
+            connection_id=orm.connection_id,
             title=orm.title,
             created_at=orm.created_at,
             updated_at=orm.updated_at,
@@ -54,6 +60,7 @@ class SqlAlchemyChatThreadRepository(IChatThreadRepository):
         return ChatThreadORM(
             id=thread.id,
             user_id=thread.user_id,
+            connection_id=thread.connection_id,
             title=thread.title,
             created_at=thread.created_at,
             updated_at=thread.updated_at,
@@ -96,4 +103,40 @@ class SqlAlchemyChatMessageRepository(IChatMessageRepository):
             content=message.content,
             sql=message.sql,
             created_at=message.created_at,
+        )
+
+
+class SqlAlchemyConnectionRefRepository(IConnectionRefRepository):
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def get(self, connection_id: uuid.UUID) -> ConnectionRef | None:
+        orm = await self._session.get(ConnectionRefORM, connection_id)
+        if orm is None:
+            return None
+        return self._to_domain(orm)
+
+    async def upsert(self, ref: ConnectionRef) -> None:
+        await self._session.merge(self._to_orm(ref))
+
+    @staticmethod
+    def _to_domain(orm: ConnectionRefORM) -> ConnectionRef:
+        return ConnectionRef(
+            connection_id=orm.connection_id,
+            owner_id=orm.owner_id,
+            title=orm.title,
+            engine=orm.engine,
+            schema=orm.schema,
+            updated_at=orm.updated_at,
+        )
+
+    @staticmethod
+    def _to_orm(ref: ConnectionRef) -> ConnectionRefORM:
+        return ConnectionRefORM(
+            connection_id=ref.connection_id,
+            owner_id=ref.owner_id,
+            title=ref.title,
+            engine=ref.engine,
+            schema=ref.schema,
+            updated_at=ref.updated_at,
         )

@@ -9,7 +9,7 @@ from src.application.dto import (
     ListThreadsDTO,
     SendMessageDTO,
 )
-from src.interfaces.http.dependencies import ChatServiceDep, CurrentUserDep
+from src.interfaces.http.dependencies import AccessTokenDep, ChatServiceDep, CurrentUserDep
 from src.interfaces.http.schemas import (
     CreateThreadRequest,
     MessageResponse,
@@ -25,9 +25,15 @@ async def create_thread(
     request: CreateThreadRequest,
     service: ChatServiceDep,
     current: CurrentUserDep,
+    access_token: AccessTokenDep,
 ) -> ThreadResponse:
     thread = await service.create_thread(
-        CreateThreadDTO(user_id=uuid.UUID(current.user_id), title=request.title)
+        CreateThreadDTO(
+            user_id=uuid.UUID(current.user_id),
+            connection_id=request.connection_id,
+            title=request.title,
+        ),
+        access_token,
     )
     return ThreadResponse.model_validate(thread)
 
@@ -65,7 +71,6 @@ async def send_message(
             thread_id=thread_id,
             user_id=uuid.UUID(current.user_id),
             question=request.question,
-            schema=request.schema_text,
         )
     )
     return StreamingResponse(stream, media_type="text/event-stream")

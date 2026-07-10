@@ -13,18 +13,47 @@ from src.infrastructure.persistence.postgres.models.connection_orm import Connec
 class SqlAlchemyConnectionRepository(IConnectionRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
+        self.seen: dict[uuid.UUID, DatabaseConnection] = {}
+
+    def _track(self, conn: DatabaseConnection) -> DatabaseConnection:
+        existing = self.seen.get(conn.id)
+        if existing is not None:
+            return existing
+        self.seen[conn.id] = conn
+        return conn
 
     async def get(self, connection_id: uuid.UUID) -> DatabaseConnection | None:
+        existing = self.seen.get(connection_id)
+        if existing is not None:
+            return existing
         result = await self._session.execute(
             select(ConnectionORM).where(ConnectionORM.id == connection_id)
         )
         orm = result.scalar_one_or_none()
         if orm is None:
             return None
-        return self._to_domain(orm)
+        return self._track(self._to_domain(orm))
+
+    async def list_by_owner(self, owner_id: uuid.UUID) -> list[DatabaseConnection]:
+        result = await self._session.execute(
+            select(ConnectionORM)
+            .where(ConnectionORM.owner_id == owner_id)
+            .order_by(ConnectionORM.created_at.desc())
+        )
+        return [self._to_domain(orm) for orm in result.scalars().all()]
 
     async def add(self, conn: DatabaseConnection) -> None:
+        self.seen[conn.id] = conn
         self._session.add(self._to_orm(conn))
+
+    async def update(self, conn: DatabaseConnection) -> None:
+        self.seen[conn.id] = conn
+        orm = await self._session.get(ConnectionORM, conn.id)
+        if orm is None:
+            raise ValueError(f"Connection {conn.id} not found")
+        orm.name = conn.name
+        orm.schema_cache = conn.schema_cache
+        orm.is_active = conn.is_active
 
     @staticmethod
     def _to_domain(orm: ConnectionORM) -> DatabaseConnection:

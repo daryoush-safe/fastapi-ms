@@ -8,6 +8,7 @@ from src.domain.ports import repository
 class IUnitOfWork(ABC):
     threads: repository.IChatThreadRepository
     messages: repository.IChatMessageRepository
+    connections: repository.IConnectionRefRepository
 
     @abstractmethod
     async def __aenter__(self) -> Self: ...

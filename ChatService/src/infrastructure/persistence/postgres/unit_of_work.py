@@ -8,6 +8,7 @@ from src.domain.ports.unit_of_work import IUnitOfWork
 from src.infrastructure.persistence.postgres.repository import (
     SqlAlchemyChatMessageRepository,
     SqlAlchemyChatThreadRepository,
+    SqlAlchemyConnectionRefRepository,
 )
 
 
@@ -19,6 +20,7 @@ class SqlAlchemyUnitOfWork(IUnitOfWork):
         self._session = self._session_factory()
         self.threads = SqlAlchemyChatThreadRepository(self._session)
         self.messages = SqlAlchemyChatMessageRepository(self._session)
+        self.connections = SqlAlchemyConnectionRefRepository(self._session)
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:  # noqa: ANN001

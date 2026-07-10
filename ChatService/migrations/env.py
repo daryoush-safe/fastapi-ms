@@ -7,6 +7,9 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from src.config import get_settings
 from src.infrastructure.persistence.postgres.models.base_orm import Base
+from src.infrastructure.persistence.postgres.models.connection_orm import (  # noqa: F401
+    ConnectionRefORM,
+)
 from src.infrastructure.persistence.postgres.models.message_orm import ChatMessageORM  # noqa: F401
 from src.infrastructure.persistence.postgres.models.thread_orm import ChatThreadORM  # noqa: F401
 

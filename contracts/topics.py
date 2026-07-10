@@ -11,3 +11,7 @@ class SubscriptionServiceTopics:
 class DBServiceTopics:
     AGGREGATE_TYPE = "dbquery"
     TOPIC = "dbservice.dbquery"
+
+    # Connection lifecycle + schema events (consumed by ChatService).
+    CONNECTION_AGGREGATE_TYPE = "dbconnection"
+    CONNECTION_TOPIC = "dbservice.dbconnection"

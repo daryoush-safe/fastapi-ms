@@ -30,6 +30,7 @@ def upgrade() -> None:
         "chat_threads",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("user_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("connection_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("title", sa.String(), nullable=True),
         sa.Column(
             "created_at",
@@ -82,8 +83,38 @@ def upgrade() -> None:
         schema="chatservice",
     )
 
+    # Local replica of DBService connections, maintained from Kafka (CDC/outbox).
+    op.create_table(
+        "chat_connections",
+        sa.Column("connection_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("owner_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("title", sa.String(), nullable=True),
+        sa.Column("engine", sa.String(50), nullable=True),
+        sa.Column("schema", sa.Text(), nullable=True),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text(_now),
+            nullable=False,
+        ),
+        sa.PrimaryKeyConstraint("connection_id"),
+        schema="chatservice",
+    )
+    op.create_index(
+        "ix_chatservice_chat_connections_owner_id",
+        "chat_connections",
+        ["owner_id"],
+        schema="chatservice",
+    )
+
 
 def downgrade() -> None:
+    op.drop_index(
+        "ix_chatservice_chat_connections_owner_id",
+        table_name="chat_connections",
+        schema="chatservice",
+    )
+    op.drop_table("chat_connections", schema="chatservice")
     op.drop_index(
         "ix_chatservice_chat_messages_thread_id",
         table_name="chat_messages",

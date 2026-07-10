@@ -17,10 +17,15 @@ class Settings(BaseSettings):
     jwt_secret: str = Field(..., alias="JWT_SECRET")
     jwt_algorithm: str = Field("HS256", alias="JWT_ALGORITHM")
 
-    # ML service (Text-to-SQL SSE endpoint)
-    mlservice_url: str = Field(
-        "http://sqlgen-serve.ml.svc.cluster.local:8000", alias="MLSERVICE_URL"
-    )
+    # Kafka
+    kafka_bootstrap_servers: str = Field("kafka:29092", alias="KAFKA_BOOTSTRAP_SERVERS")
+
+    # DBService
+    dbservice_url: str = Field("http://db-service:8003", alias="DBSERVICE_URL")
+    dbservice_timeout: float = Field(10.0, alias="DBSERVICE_TIMEOUT")
+
+    # ML service
+    mlservice_url: str = Field("http://ML-service:8000", alias="MLSERVICE_URL")
     mlservice_stream_path: str = Field("/stream-query", alias="MLSERVICE_STREAM_PATH")
     mlservice_timeout: float = Field(120.0, alias="MLSERVICE_TIMEOUT")
 

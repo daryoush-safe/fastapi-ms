@@ -8,6 +8,7 @@ from src.domain.models import ChatMessage, ChatThread, MessageRole
 @dataclass
 class CreateThreadDTO:
     user_id: uuid.UUID
+    connection_id: uuid.UUID
     title: str | None = None
 
 
@@ -16,7 +17,15 @@ class SendMessageDTO:
     thread_id: uuid.UUID
     user_id: uuid.UUID
     question: str
-    schema: str
+
+
+@dataclass
+class UpsertConnectionDTO:
+    connection_id: uuid.UUID
+    owner_id: uuid.UUID
+    title: str | None = None
+    engine: str | None = None
+    schema: str | None = None
 
 
 @dataclass
@@ -33,6 +42,7 @@ class GetMessagesDTO:
 @dataclass
 class ThreadDTO:
     id: uuid.UUID
+    connection_id: uuid.UUID
     title: str | None
     created_at: datetime
     updated_at: datetime
@@ -42,6 +52,7 @@ class ThreadDTO:
     def from_domain(cls, thread: ChatThread) -> "ThreadDTO":
         return cls(
             id=thread.id,
+            connection_id=thread.connection_id,
             title=thread.title,
             created_at=thread.created_at,
             updated_at=thread.updated_at,

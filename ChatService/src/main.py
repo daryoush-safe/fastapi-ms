@@ -10,21 +10,34 @@ from sqlalchemy import text
 
 from src.config import get_settings
 from src.container import Container
+from src.interfaces.consumers.event_registry import ChatServiceEventRegistry
+from src.interfaces.consumers.kafka_handlers import ChatServiceKafkaConsumer
 from src.interfaces.http.api.v1.threads import router as threads_router
 from src.interfaces.http.exception_handlers import register_exception_handlers
 
 settings = get_settings()
 
+_consumer: ChatServiceKafkaConsumer | None = None
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    global _consumer
+    registry = ChatServiceEventRegistry(chat_service=Container.chat_service())
+    _consumer = ChatServiceKafkaConsumer(registry)
+    await _consumer.start()
     yield
+    await _consumer.stop()
 
 
 async def _check_db() -> bool:
     async with Container.engine().connect() as conn:
         await conn.execute(text("SELECT 1"))
     return True
+
+
+async def _check_kafka() -> bool:
+    return _consumer is not None and _consumer.is_running
 
 
 def create_app() -> FastAPI:
@@ -49,7 +62,7 @@ def create_app() -> FastAPI:
         app,
         service_name=settings.app_name,
         engine=Container.engine(),
-        readiness_checks={"database": _check_db},
+        readiness_checks={"database": _check_db, "kafka": _check_kafka},
         log_level="DEBUG" if settings.debug else "INFO",
         json_logs=not settings.debug,
     )

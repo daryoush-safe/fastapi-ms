@@ -6,7 +6,7 @@ from collections.abc import AsyncIterator
 from datetime import datetime, timezone
 
 from src.application.dto import SendMessageDTO
-from src.domain.exceptions import ThreadAccessDenied, ThreadNotFound
+from src.domain.exceptions import SchemaUnavailable, ThreadAccessDenied, ThreadNotFound
 from src.domain.models import ChatMessage, MessageRole
 from src.domain.ports.sql_generator import ISqlGenerator
 from src.domain.ports.unit_of_work import IUnitOfWork
@@ -28,6 +28,11 @@ class SendMessage:
             if thread.user_id != dto.user_id:
                 raise ThreadAccessDenied(dto.thread_id)
 
+            ref = await uow.connections.get(thread.connection_id)
+            if ref is None or not ref.schema:
+                raise SchemaUnavailable(thread.connection_id)
+            schema = ref.schema
+
             now = datetime.now(timezone.utc)
             await uow.messages.add(
                 ChatMessage(
@@ -45,13 +50,13 @@ class SendMessage:
             thread.updated_at = now
             await uow.threads.update(thread)
 
-        return self._stream(dto)
+        return self._stream(dto, schema)
 
-    async def _stream(self, dto: SendMessageDTO) -> AsyncIterator[str]:
+    async def _stream(self, dto: SendMessageDTO, schema: str) -> AsyncIterator[str]:
         final_sql: str | None = None
         final_answer: str | None = None
         try:
-            async for chunk in self._sql_generator.stream(dto.question, dto.schema):
+            async for chunk in self._sql_generator.stream(dto.question, schema):
                 for _node, updates in chunk.items():
                     if not isinstance(updates, dict):
                         continue

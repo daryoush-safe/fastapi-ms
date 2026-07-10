@@ -19,10 +19,23 @@ class MessageRole(str, Enum):
 class ChatThread:
     id: uuid.UUID
     user_id: uuid.UUID
+    connection_id: uuid.UUID  # the DBService connection this thread queries
     title: str | None
     created_at: datetime = field(default_factory=_utcnow)
     updated_at: datetime = field(default_factory=_utcnow)
     last_message_at: datetime | None = None
+
+
+@dataclass
+class ConnectionRef:
+    """Local replica of a DBService connection, fed by Kafka (CDC/outbox)."""
+
+    connection_id: uuid.UUID
+    owner_id: uuid.UUID
+    title: str | None = None
+    engine: str | None = None
+    schema: str | None = None  # rendered schema text forwarded to the ML service
+    updated_at: datetime = field(default_factory=_utcnow)
 
 
 @dataclass

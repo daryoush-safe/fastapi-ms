@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import (
 from src.application.services import ChatService
 from src.config import Settings, get_settings
 from src.domain.ports.unit_of_work import IUnitOfWork
+from src.infrastructure.clients.http_connection_validator import HttpConnectionValidator
 from src.infrastructure.ml.sse_sql_generator import SseSqlGenerator
 from src.infrastructure.persistence.postgres.unit_of_work import SqlAlchemyUnitOfWork
 
@@ -59,6 +60,10 @@ class Container:
                     base_url=s.mlservice_url,
                     stream_path=s.mlservice_stream_path,
                     timeout=s.mlservice_timeout,
+                ),
+                connection_validator=HttpConnectionValidator(
+                    base_url=s.dbservice_url,
+                    timeout=s.dbservice_timeout,
                 ),
             )
         return cls._chat_service
