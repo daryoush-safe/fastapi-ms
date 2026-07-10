@@ -97,6 +97,7 @@ jobs:
           yq -i '.image.tag = "sha-${{ github.sha }}"' apps/userservice/values.yaml
           yq -i '.image.tag = "sha-${{ github.sha }}"' apps/subscriptionservice/values.yaml
           yq -i '.image.tag = "sha-${{ github.sha }}"' apps/dbservice/values.yaml
+          yq -i '.image.tag = "sha-${{ github.sha }}"' apps/chatservice/values.yaml
 
       - name: Commit and push
         run: |
@@ -106,7 +107,7 @@ jobs:
           if git diff --quiet; then
             echo "No tag changes"
           else
-            git add apps/userservice/values.yaml apps/subscriptionservice/values.yaml apps/dbservice/values.yaml
+            git add apps/userservice/values.yaml apps/subscriptionservice/values.yaml apps/dbservice/values.yaml apps/chatservice/values.yaml
             git commit -m "chore: bump image tags to sha-${{ github.sha }}"
             git push
           fi
