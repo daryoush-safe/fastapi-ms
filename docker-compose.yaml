@@ -12,6 +12,7 @@ services:
       SUBSCRIPTION_SERVICE_DB_PASSWORD: ${SUBSCRIPTION_SERVICE_DB_PASSWORD}
       DEBEZIUM_DB_PASSWORD: ${DEBEZIUM_DB_PASSWORD}
       DB_SERVICE_DB_PASSWORD: ${DB_SERVICE_DB_PASSWORD}
+      CHAT_SERVICE_DB_PASSWORD: ${CHAT_SERVICE_DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./PostgresDB/init:/docker-entrypoint-initdb.d:ro
@@ -212,6 +213,45 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
     ports:
       - "8003:8003"
+    networks:
+      - backend
+
+  # ── Chat Service ─────────────────────────────────────────────────────────────
+  chat-service:
+    build:
+      context: .
+      dockerfile: ChatService/Dockerfile
+    container_name: chat-service
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://chat_service_role:${CHAT_SERVICE_DB_PASSWORD}@postgres:5432/fastapi_ms
+      DB_HOST: postgres
+      DB_PORT: 5432
+      APP_NAME: ChatService
+      APP_HOST: 0.0.0.0
+      APP_PORT: 8004
+      DEBUG: "false"
+      DB_ECHO: "false"
+      DB_POOL_SIZE: 5
+      DB_MAX_OVERFLOW: 10
+      # Kafka — consumes dbservice.dbconnection to replicate connection schemas
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      # DBService — sync connection-ownership validation at thread creation
+      DBSERVICE_URL: ${DBSERVICE_URL:-http://db-service:8003}
+      DBSERVICE_TIMEOUT: "10.0"
+      # URL of the Text-to-SQL ML service exposing POST /stream-query (SSE)
+      MLSERVICE_URL: ${MLSERVICE_URL:-http://sqlgen-serve.ml.svc.cluster.local:8000}
+      MLSERVICE_TIMEOUT: "120.0"
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+    ports:
+      - "8004:8004"
     networks:
       - backend
 

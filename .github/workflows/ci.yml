@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        service: [UserService, SubscriptionService, DBService]
+        service: [UserService, SubscriptionService, DBService, ChatService]
     services:
       postgres:
         image: postgres:16-alpine
@@ -93,6 +93,8 @@ jobs:
             dockerfile: SubscriptionService/Dockerfile
           - service: DBService
             dockerfile: DBService/Dockerfile
+          - service: ChatService
+            dockerfile: ChatService/Dockerfile
     steps:
       - uses: actions/checkout@v4
 

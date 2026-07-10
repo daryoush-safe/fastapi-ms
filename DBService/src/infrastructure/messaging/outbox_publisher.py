@@ -21,7 +21,7 @@ class OutboxPublisher(IEventPublisher):
         payload[TRACE_CARRIER_KEY] = inject_trace_context()
         record = OutboxORM(
             aggregate_id=str(self._extract_aggregate_id(event)),
-            aggregate_type=DBServiceTopics.AGGREGATE_TYPE,  # → "dbquery"
+            aggregate_type=DBServiceTopics.CONNECTION_AGGREGATE_TYPE,  # → "dbconnection"
             event_type=event.event_type,
             payload=json.dumps(payload),
         )
@@ -29,7 +29,7 @@ class OutboxPublisher(IEventPublisher):
 
     @staticmethod
     def _extract_aggregate_id(event: DomainEvent) -> object:
-        return getattr(event, "connection_id", event.event_id)
+        return getattr(event, "connection_id", None) or getattr(event, "event_id", None)
 
     @staticmethod
     def _serialize(event: DomainEvent) -> dict:

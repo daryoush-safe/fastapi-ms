@@ -38,6 +38,7 @@ class RegisterConnectionUseCase:
             schema_cache=None,
             is_active=True,
         )
+        conn.record_registered()
         async with self._uow as uow:
             await uow.connections.add(conn)
         return conn

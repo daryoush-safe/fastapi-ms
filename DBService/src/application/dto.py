@@ -11,6 +11,17 @@ class ExtractSchemaDTO:
 
 
 @dataclass
+class ListConnectionsDTO:
+    owner_id: uuid.UUID
+
+
+@dataclass
+class GetConnectionDTO:
+    connection_id: uuid.UUID
+    owner_id: uuid.UUID
+
+
+@dataclass
 class RunText2SQLDTO:
     connection_id: uuid.UUID
     owner_id: uuid.UUID

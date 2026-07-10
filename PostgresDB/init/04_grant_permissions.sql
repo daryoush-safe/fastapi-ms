@@ -30,3 +30,9 @@ GRANT USAGE ON SCHEMA dbservice TO debezium_role;
 
 ALTER DEFAULT PRIVILEGES FOR ROLE db_service_role IN SCHEMA dbservice
     GRANT SELECT ON TABLES TO debezium_role;
+
+-- ─── Chat Service ─────────────────────────────────────────────────────────────
+-- ChatService is a Kafka *consumer* (dbservice.dbconnection) but never a CDC
+-- source, so its role needs no REPLICATION and publishes no outbox tables.
+GRANT CREATE ON DATABASE fastapi_ms TO chat_service_role;
+GRANT USAGE, CREATE ON SCHEMA chatservice TO chat_service_role;
