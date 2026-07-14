@@ -41,8 +41,10 @@ class ChatService:
     async def get_thread_messages(self, dto: GetMessagesDTO) -> list[MessageDTO]:
         return await GetThreadMessages(self._uow_factory()).execute(dto)
 
-    async def send_message(self, dto: SendMessageDTO) -> AsyncIterator[str]:
-        return await SendMessage(self._uow_factory(), self._sql_generator).execute(dto)
+    async def send_message(self, dto: SendMessageDTO, access_token: str) -> AsyncIterator[str]:
+        return await SendMessage(self._uow_factory(), self._sql_generator).execute(
+            dto, access_token
+        )
 
     async def upsert_connection(self, dto: UpsertConnectionDTO) -> None:
         return await UpsertConnection(self._uow_factory()).execute(dto)

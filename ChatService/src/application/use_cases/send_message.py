@@ -20,7 +20,7 @@ class SendMessage:
         self._uow = uow
         self._sql_generator = sql_generator
 
-    async def execute(self, dto: SendMessageDTO) -> AsyncIterator[str]:
+    async def execute(self, dto: SendMessageDTO, access_token: str) -> AsyncIterator[str]:
         async with self._uow as uow:
             thread = await uow.threads.get(dto.thread_id)
             if thread is None:
@@ -32,6 +32,7 @@ class SendMessage:
             if ref is None or not ref.schema:
                 raise SchemaUnavailable(thread.connection_id)
             schema = ref.schema
+            connection_id = thread.connection_id
 
             now = datetime.now(timezone.utc)
             await uow.messages.add(
@@ -50,20 +51,32 @@ class SendMessage:
             thread.updated_at = now
             await uow.threads.update(thread)
 
-        return self._stream(dto, schema)
+        return self._stream(dto, schema, connection_id, access_token)
 
-    async def _stream(self, dto: SendMessageDTO, schema: str) -> AsyncIterator[str]:
+    async def _stream(
+        self,
+        dto: SendMessageDTO,
+        schema: str,
+        connection_id: uuid.UUID,
+        access_token: str,
+    ) -> AsyncIterator[str]:
         final_sql: str | None = None
         final_answer: str | None = None
         try:
-            async for chunk in self._sql_generator.stream(dto.question, schema):
+            async for chunk in self._sql_generator.stream(
+                dto.question,
+                schema,
+                db_id=connection_id,
+                thread_id=dto.thread_id,
+                access_token=access_token,
+            ):
                 for _node, updates in chunk.items():
                     if not isinstance(updates, dict):
                         continue
                     if updates.get("sql"):
                         final_sql = updates["sql"]
-                    if updates.get("final_answer"):
-                        final_answer = updates["final_answer"]
+                    if updates.get("answer"):
+                        final_answer = updates["answer"]
                 yield f"data: {json.dumps(chunk)}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
