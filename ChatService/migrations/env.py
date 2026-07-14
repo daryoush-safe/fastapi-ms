@@ -4,7 +4,6 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
-
 from src.config import get_settings
 from src.infrastructure.persistence.postgres.models.base_orm import Base
 from src.infrastructure.persistence.postgres.models.connection_orm import (  # noqa: F401

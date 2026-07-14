@@ -30,6 +30,9 @@ class MessageResponse(BaseModel):
     content: str | None
     sql: str | None
     created_at: datetime
+    chart: dict | None = None
+    columns: list | None = None
+    rows: list | None = None
 
 
 class SendMessageRequest(BaseModel):

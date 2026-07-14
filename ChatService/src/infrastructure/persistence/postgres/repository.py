@@ -91,6 +91,9 @@ class SqlAlchemyChatMessageRepository(IChatMessageRepository):
             role=orm.role,
             content=orm.content,
             sql=orm.sql,
+            chart=orm.chart,
+            columns=orm.columns,
+            rows=orm.rows,
             created_at=orm.created_at,
         )
 
@@ -102,6 +105,9 @@ class SqlAlchemyChatMessageRepository(IChatMessageRepository):
             role=message.role,
             content=message.content,
             sql=message.sql,
+            chart=message.chart,
+            columns=message.columns,
+            rows=message.rows,
             created_at=message.created_at,
         )
 
