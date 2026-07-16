@@ -1,8 +1,9 @@
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Text, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.domain.models import MessageRole
@@ -30,6 +31,9 @@ class ChatMessageORM(Base):
     role: Mapped[MessageRole] = mapped_column(_role_enum, nullable=False)
     content: Mapped[str | None] = mapped_column(Text, nullable=True)
     sql: Mapped[str | None] = mapped_column(Text, nullable=True)
+    chart: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    columns: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
+    rows: Mapped[list[list[Any]] | None] = mapped_column(JSONB, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

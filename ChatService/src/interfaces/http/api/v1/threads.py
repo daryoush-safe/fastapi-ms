@@ -65,12 +65,14 @@ async def send_message(
     request: SendMessageRequest,
     service: ChatServiceDep,
     current: CurrentUserDep,
+    access_token: AccessTokenDep,
 ) -> StreamingResponse:
     stream = await service.send_message(
         SendMessageDTO(
             thread_id=thread_id,
             user_id=uuid.UUID(current.user_id),
             question=request.question,
-        )
+        ),
+        access_token,
     )
     return StreamingResponse(stream, media_type="text/event-stream")

@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     dbservice_timeout: float = Field(10.0, alias="DBSERVICE_TIMEOUT")
 
     # ML service
-    mlservice_url: str = Field("http://ML-service:8000", alias="MLSERVICE_URL")
+    mlservice_url: str = Field("http://inference-api:8080", alias="MLSERVICE_URL")
     mlservice_stream_path: str = Field("/stream-query", alias="MLSERVICE_STREAM_PATH")
     mlservice_timeout: float = Field(120.0, alias="MLSERVICE_TIMEOUT")
 

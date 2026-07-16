@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import uuid
 from collections.abc import AsyncIterator
 
 import httpx
@@ -18,10 +19,24 @@ class SseSqlGenerator(ISqlGenerator):
         self._url = base_url.rstrip("/") + stream_path
         self._timeout = timeout
 
-    async def stream(self, question: str, schema: str) -> AsyncIterator[dict]:
-        payload = {"question": question, "schema": schema}
+    async def stream(
+        self,
+        question: str,
+        schema: str,
+        *,
+        db_id: uuid.UUID,
+        thread_id: uuid.UUID,
+        access_token: str,
+    ) -> AsyncIterator[dict]:
+        payload = {
+            "question": question,
+            "schema": schema,
+            "db_id": str(db_id),
+            "thread_id": str(thread_id),
+        }
+        headers = {"Authorization": f"Bearer {access_token}"}
         async with httpx.AsyncClient(timeout=self._timeout) as client:
-            async with client.stream("POST", self._url, json=payload) as response:
+            async with client.stream("POST", self._url, json=payload, headers=headers) as response:
                 if response.status_code >= 400:
                     body = (await response.aread()).decode("utf-8", "replace")
                     raise RuntimeError(f"ML service returned {response.status_code}: {body}")

@@ -67,6 +67,9 @@ class MessageDTO:
     content: str | None
     sql: str | None
     created_at: datetime
+    chart: dict | None = None
+    columns: list | None = None
+    rows: list | None = None
 
     @classmethod
     def from_domain(cls, message: ChatMessage) -> "MessageDTO":
@@ -76,4 +79,7 @@ class MessageDTO:
             content=message.content,
             sql=message.sql,
             created_at=message.created_at,
+            chart=message.chart,
+            columns=message.columns,
+            rows=message.rows,
         )

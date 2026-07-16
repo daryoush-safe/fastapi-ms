@@ -43,6 +43,9 @@ class ChatMessage:
     id: uuid.UUID
     thread_id: uuid.UUID
     role: MessageRole
-    content: str | None  # natural-language turn (question or assistant answer)
-    sql: str | None  # final SQL statement for assistant turns, else None
+    content: str | None
+    sql: str | None
+    chart: dict | None = None
+    columns: list[str] | None = None
+    rows: list[list] | None = None
     created_at: datetime = field(default_factory=_utcnow)
